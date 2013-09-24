@@ -6,25 +6,9 @@
 
 // Private functions
 static void read_3bytes_base64(uint8_t *buf, char *out);
-
-// data types
-#pragma pack(1)
-    // warning: the order of these bitfields is implementation defined
-    struct base64_group {
-        uint8_t fourth : 6;
-        uint8_t third  : 6;
-        uint8_t second : 6;
-        uint8_t first  : 6;
-    };
-#pragma pack()
-
-const uint8_t test_buf[] = {
-    0x49, 0x27, 0x6d, 0x20, 0x6b, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67,
-    0x20, 0x79, 0x6f, 0x75, 0x72, 0x20, 0x62, 0x72, 0x61, 0x69, 0x6e,
-    0x20, 0x6c, 0x69, 0x6b, 0x65, 0x20, 0x61, 0x20, 0x70, 0x6f, 0x69,
-    0x73, 0x6f, 0x6e, 0x6f, 0x75, 0x73, 0x20, 0x6d, 0x75, 0x73, 0x68,
-    0x72, 0x6f, 0x6f, 0x6d
-};
+static char to_base64(uint8_t num);
+static uint8_t char16_to_raw(uint8_t char16);
+static uint8_t char64_to_raw(uint8_t char64);
 
 /*
  * print a buffer in base 16
@@ -97,7 +81,7 @@ static void read_3bytes_base64(uint8_t *buf, char *out)
  * @param num base 64 number
  * @return printable character for num if it exists, else \0
  */
-char to_base64(uint8_t num)
+static char to_base64(uint8_t num)
 {
     char base64_alphabet[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     if (num < 64)
@@ -130,7 +114,7 @@ void read_base16(uint8_t *dest, uint8_t *src, uint32_t len)
  * @param char16 base 16 character to decode
  * @return raw integer
  */
-uint8_t char16_to_raw(uint8_t char16)
+static uint8_t char16_to_raw(uint8_t char16)
 {
     if (char16 >= '0' && char16 <= '9')
         return char16 - '0';
@@ -172,7 +156,7 @@ void read_base64(uint8_t *dest, uint8_t *src, uint32_t len)
  * @param char64 base 16 character to decode
  * @return raw integer
  */
-uint8_t char64_to_raw(uint8_t char64)
+static uint8_t char64_to_raw(uint8_t char64)
 {
     if (char64 >= 'A' && char64 <= 'Z')
         return char64 - 'A';
@@ -187,6 +171,14 @@ uint8_t char64_to_raw(uint8_t char64)
     printf("bad base64 char: %x", char64);
     return 255;
 }
+
+const uint8_t test_buf[] = {
+    0x49, 0x27, 0x6d, 0x20, 0x6b, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67,
+    0x20, 0x79, 0x6f, 0x75, 0x72, 0x20, 0x62, 0x72, 0x61, 0x69, 0x6e,
+    0x20, 0x6c, 0x69, 0x6b, 0x65, 0x20, 0x61, 0x20, 0x70, 0x6f, 0x69,
+    0x73, 0x6f, 0x6e, 0x6f, 0x75, 0x73, 0x20, 0x6d, 0x75, 0x73, 0x68,
+    0x72, 0x6f, 0x6f, 0x6d
+};
 
 int main(void)
 {
