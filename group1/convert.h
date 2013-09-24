@@ -23,7 +23,7 @@ void print_base64(uint8_t *buf, uint32_t len);
  * @param num base 64 number
  * @return printable character for num if it exists, else \0
  */
-uint8_t to_base64(uint8_t num);
+char to_base64(uint8_t num);
 
 /*
  * Read a base 16 string & convert to raw bytes
