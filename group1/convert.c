@@ -5,39 +5,40 @@
 #include <string.h>
 
 // Private functions
-static void read_3bytes_base64(uint8_t *buf, char *out);
+static void read_3bytes_base64(const uint8_t *buf, char *out);
 static char to_base64(uint8_t num);
-static uint8_t char16_to_raw(uint8_t char16);
-static uint8_t char64_to_raw(uint8_t char64);
+static uint8_t char16_to_raw(char char16);
+static uint8_t char64_to_raw(char char64);
 
 /*
- * print a buffer in base 16
- * @param buf pointer to data to print
+ * print the bytes in a buffer as hexadecimal characters
+ * @param src pointer to data to print
  * @param len number of bytes in buffer
  */
-void print_base16(uint8_t *buf, uint32_t len)
+void print_base16(const uint8_t *src, uint32_t len)
 {
     uint32_t i;
-    for (i = 0; i < len; i++) {
-        printf("%0x", buf[i]);
-    }
+    for (i = 0; i < len; i++)
+        printf("%0x", src[i]);
+    printf("\n");
 }
 
 /*
  * Print a buffer in base 64. If the number of bytes in the input is not
  * a multiple of 3, then the input will be padded with 0 as necessary so
  * that it is. Trailing '=' characters indicate the number of bytes of
- * padding that were used.
- * @param buf pointer to data to print
+ * padding that were used, where '=' means one byte of padding and '==' two.
+ * @param src pointer to data to print
  * @param len number of bytes in buffer
  */
-void print_base64(uint8_t *buf, uint32_t len)
+void print_base64(const uint8_t *src, uint32_t len)
 {
     // process the input as groups of 4 6-bit numbers
     uint32_t groups_of_4 = len / 3;  // groups of 4 base64 numbers
-    char printable_group[5] = { '\0' }; // include a null
-    for (uint32_t i = 0; i < groups_of_4; i++) {
-        read_3bytes_base64(buf + i * 3, printable_group);
+    char printable_group[5] = { '\0' }; // print as a string
+    uint32_t i;
+    for (i = 0; i < groups_of_4; i++) {
+        read_3bytes_base64(src + i * 3, printable_group);
         printf("%s", printable_group);
     }
     // process any remaining bytes with padding as necessary
@@ -45,8 +46,8 @@ void print_base64(uint8_t *buf, uint32_t len)
     uint32_t remaining = len % 3;
     if (remaining) {
         uint8_t last_group[3] = { 0 };
-        for (uint32_t i = 0; i < remaining; ++i)
-            last_group[i] = buf[off + i];
+        for (i = 0; i < remaining; ++i)
+            last_group[i] = src[off + i];
         read_3bytes_base64(last_group, printable_group);
         char padding = "="[0];
         printable_group[3] = padding;
@@ -64,7 +65,7 @@ void print_base64(uint8_t *buf, uint32_t len)
  * @param out string to write the formatted output to
  *        precondition: length >= 4
  */
-static void read_3bytes_base64(uint8_t *buf, char *out)
+static void read_3bytes_base64(const uint8_t *buf, char *out)
 {
     uint8_t first = buf[0] >> 2;
     uint8_t second = ((buf[0] &  0x3) << 4) | (buf[1] >> 4);
@@ -92,11 +93,11 @@ static char to_base64(uint8_t num)
 
 /*
  * Read a base 16 string & convert to raw bytes
- * @param destination buffer; already allocated
+ * @param dest destination buffer for decoded bytes; already allocated
  * @param src source base 16 string
  * @param len number of bytes to read
  */
-void read_base16(uint8_t *dest, uint8_t *src, uint32_t len)
+void read_base16(uint8_t *dest, const uint8_t *src, uint32_t len)
 {
     uint32_t i;
     for (i = 0; i < len; ++i) {
@@ -104,7 +105,7 @@ void read_base16(uint8_t *dest, uint8_t *src, uint32_t len)
         uint32_t shft = 4 * (1 - (i % 2));
         uint8_t raw = char16_to_raw(char16);
         if (raw > 15)
-            continue;
+            return;     // error detected
         dest[i/2] = (dest[i/2] & (0xf0 >> shft)) | (raw << shft);
     }
 }
@@ -114,7 +115,7 @@ void read_base16(uint8_t *dest, uint8_t *src, uint32_t len)
  * @param char16 base 16 character to decode
  * @return raw integer
  */
-static uint8_t char16_to_raw(uint8_t char16)
+static uint8_t char16_to_raw(char char16)
 {
     if (char16 >= '0' && char16 <= '9')
         return char16 - '0';
@@ -132,7 +133,7 @@ static uint8_t char16_to_raw(uint8_t char16)
  * @param src source base 64 string
  * @param len number of bytes to read
  */
-void read_base64(uint8_t *dest, uint8_t *src, uint32_t len)
+void read_base64(uint8_t *dest, const uint8_t * src, uint32_t len)
 {
     uint32_t groups_of_4 = len / 4;  // groups of 4 base 64 numbers
     uint32_t i;
@@ -156,7 +157,7 @@ void read_base64(uint8_t *dest, uint8_t *src, uint32_t len)
  * @param char64 base 16 character to decode
  * @return raw integer
  */
-static uint8_t char64_to_raw(uint8_t char64)
+static uint8_t char64_to_raw(char char64)
 {
     if (char64 >= 'A' && char64 <= 'Z')
         return char64 - 'A';
@@ -172,36 +173,4 @@ static uint8_t char64_to_raw(uint8_t char64)
     return 255;
 }
 
-const uint8_t test_buf[] = {
-    0x49, 0x27, 0x6d, 0x20, 0x6b, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67,
-    0x20, 0x79, 0x6f, 0x75, 0x72, 0x20, 0x62, 0x72, 0x61, 0x69, 0x6e,
-    0x20, 0x6c, 0x69, 0x6b, 0x65, 0x20, 0x61, 0x20, 0x70, 0x6f, 0x69,
-    0x73, 0x6f, 0x6e, 0x6f, 0x75, 0x73, 0x20, 0x6d, 0x75, 0x73, 0x68,
-    0x72, 0x6f, 0x6f, 0x6d
-};
-
-int main(void)
-{
-    uint8_t *test_str = "pleasure.";
-    print_base64(test_str, strlen(test_str));
-    test_str = "leasure.";
-    print_base64(test_str, strlen(test_str));
-    test_str = "easure.";
-    print_base64(test_str, strlen(test_str));
-    test_str = "asure.";
-    print_base64(test_str, strlen(test_str));
-    test_str = "sure.";
-    print_base64(test_str, strlen(test_str));
-//    char hex_str[] = "0123456789aBcDEF";
-//    uint32_t hex_len = strlen(hex_str);
-//    uint8_t dest[hex_len / 2];
-//    print_base16(test_buf, sizeof test_buf);
-//    printf("\n");
-//    print_base64(test_buf, sizeof test_buf);
-//    printf("\n");
-//    read_base16(dest, hex_str, hex_len);
-//    print_base16(dest, sizeof dest);
-//    printf("\n");
-    return 0;
-}
 
