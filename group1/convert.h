@@ -9,7 +9,7 @@
  * @param src pointer to data to print
  * @param len number of bytes in buffer
  */
-void print_base16(const uint8_t *buf, uint32_t len);
+void print_base16(const uint8_t *src, uint32_t len);
 
 /*
  * Print a buffer in base 64. If the number of bytes in the input is not

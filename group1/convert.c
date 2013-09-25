@@ -5,7 +5,7 @@
 #include <string.h>
 
 // Private functions
-static void read_3bytes_base64(const uint8_t *buf, char *out);
+static void read_3bytes_base64(const uint8_t *src, char *out);
 static char to_base64(uint8_t num);
 static uint8_t char16_to_raw(char char16);
 static uint8_t char64_to_raw(char char64);
@@ -65,12 +65,12 @@ void print_base64(const uint8_t *src, uint32_t len)
  * @param out string to write the formatted output to
  *        precondition: length >= 4
  */
-static void read_3bytes_base64(const uint8_t *buf, char *out)
+static void read_3bytes_base64(const uint8_t *src, char *out)
 {
-    uint8_t first = buf[0] >> 2;
-    uint8_t second = ((buf[0] &  0x3) << 4) | (buf[1] >> 4);
-    uint8_t third = ((buf[1] & 0xf) << 2) | (buf[2] >> 6);
-    uint8_t fourth = buf[2] & 0x3f;
+    uint8_t first = src[0] >> 2;
+    uint8_t second = ((src[0] &  0x3) << 4) | (src[1] >> 4);
+    uint8_t third = ((src[1] & 0xf) << 2) | (src[2] >> 6);
+    uint8_t fourth = src[2] & 0x3f;
     out[0] = to_base64(first);
     out[1] = to_base64(second);
     out[2] = to_base64(third);
