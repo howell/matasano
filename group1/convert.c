@@ -1,13 +1,14 @@
 
-#include "convert.h"
 #include <stdio.h>
-#include <assert.h>
 #include <string.h>
+
+#include "convert.h"
 
 // Private functions
 static void read_3bytes_base64(const uint8_t *src, char *out);
 static char to_base64(uint8_t num);
 static uint8_t char16_to_raw(char char16);
+static void decode_4bytes_base64(const char *src, uint8_t *dest);
 static uint8_t char64_to_raw(char char64);
 
 /*
@@ -19,7 +20,7 @@ void print_base16(const uint8_t *src, uint32_t len)
 {
     uint32_t i;
     for (i = 0; i < len; i++)
-        printf("%0x", src[i]);
+        printf("%02x", src[i]);
     printf("\n");
 }
 
@@ -95,18 +96,19 @@ static char to_base64(uint8_t num)
  * Read a base 16 string & convert to raw bytes
  * @param dest destination buffer for decoded bytes; already allocated
  * @param src source base 16 string
- * @param len number of bytes to read
+ * @param len number of characters in input string
+ *        precondition: len >= sizeof dest buffer / 2
  */
-void read_base16(uint8_t *dest, const uint8_t *src, uint32_t len)
+void read_base16(uint8_t *dest, const char *src, uint32_t len)
 {
     uint32_t i;
     for (i = 0; i < len; ++i) {
-        uint8_t char16 = src[i];
-        uint32_t shft = 4 * (1 - (i % 2));
+        char char16 = src[i];
         uint8_t raw = char16_to_raw(char16);
         if (raw > 15)
             return;     // error detected
-        dest[i/2] = (dest[i/2] & (0xf0 >> shft)) | (raw << shft);
+        uint32_t shift = 4 * (1 - (i % 2));
+        dest[i/2] = (dest[i/2] & (0xf0 >> shift)) | (raw << shift);
     }
 }
 
@@ -131,25 +133,47 @@ static uint8_t char16_to_raw(char char16)
  * Read a base 64 string & convert to raw bytes
  * @param destination buffer; already allocated
  * @param src source base 64 string
- * @param len number of bytes to read
+ * @param len number of characters in input string
+ *        precondition: must be multiple of 4, with any padding represented as =
+ *        precondition: length of destination buffer >= 3/4 length of string
+ * @return number of non-padding bytes decoded from the source string
  */
-void read_base64(uint8_t *dest, const uint8_t * src, uint32_t len)
+uint32_t read_base64(uint8_t *dest, const char * src, uint32_t len)
 {
     uint32_t groups_of_4 = len / 4;  // groups of 4 base 64 numbers
     uint32_t i;
-    uint8_t base64_nums[4];
+    uint32_t out_index = 0;
+    // decode in groups of 4
     for (i = 0; i < groups_of_4; ++i) {
-        uint32_t j, idx;
-        idx = 4 * i;
-        for (j = 0; j < 4; ++j) {
-            base64_nums[j] = char64_to_raw(src[idx + j]);
-            if (base64_nums[j] > 63)
-                return;
-        }
-        dest[idx] = (base64_nums[0] << 2) | (base64_nums[1] >> 6);
-        dest[idx + 1] = (base64_nums[1] << 4) | (base64_nums[2] & 0xf);
-        dest[idx + 2] = (base64_nums[2] << 6) | base64_nums[3];
+        const char *current_group = src + i * 4;
+        decode_4bytes_base64(current_group, dest + out_index);
+        out_index += 3;
     }
+    char padding = "="[0];
+    if (src[len - 1] == padding) {
+        --out_index;
+        if (src[len - 2] == padding)
+            --out_index;
+    }
+    return out_index;
+}
+
+/*
+ * Decode 4 base64 characters
+ * @param src pointer to 4 characters to decode
+ *        precondition: length of src >= 4
+ * @param dest pointer to buffer to write decoded base64 to
+ *        precondition: length of dest >= 3
+ */
+static void decode_4bytes_base64(const char *src, uint8_t *dest)
+{
+    uint8_t group_of_4[4];
+    uint32_t i;
+    for (i = 0; i < 4; ++i)
+        group_of_4[i] = char64_to_raw(src[i]);
+    dest[0] = (group_of_4[0] << 2) | (group_of_4[1] >> 4);
+    dest[1] = (group_of_4[1] << 4) | (group_of_4[2] >> 2);
+    dest[2] = (group_of_4[2] << 6) | group_of_4[3];
 }
 
 /*
@@ -169,7 +193,9 @@ static uint8_t char64_to_raw(char char64)
         return 62;
     if (char64 == '/')
         return 63;
-    printf("bad base64 char: %x", char64);
+    if (char64 == "="[0])   // padding
+        return 0;
+    printf("bad base64 char: 0x%02x", char64);
     return 255;
 }
 

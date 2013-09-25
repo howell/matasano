@@ -8,6 +8,9 @@
 // private functions
 static void test_print_base64();
 static void test_print_base16();
+static void test_read_base16();
+static void test_read_base64();
+static void test_base64();
 
 const uint8_t test_buf[] = {
     0x49, 0x27, 0x6d, 0x20, 0x6b, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67,
@@ -21,16 +24,9 @@ int main(void)
 {
     test_print_base64();
     test_print_base16();
-//    char hex_str[] = "0123456789aBcDEF";
-//    uint32_t hex_len = strlen(hex_str);
-//    uint8_t dest[hex_len / 2];
-//    print_base16(test_buf, sizeof test_buf);
-//    printf("\n");
-//    print_base64(test_buf, sizeof test_buf);
-//    printf("\n");
-//    read_base16(dest, hex_str, hex_len);
-//    print_base16(dest, sizeof dest);
-//    printf("\n");
+    test_read_base16();
+    test_read_base64();
+    test_base64();
     return 0;
 }
 
@@ -65,5 +61,59 @@ static void test_print_base16()
     uint8_t hex_buf[] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF };
     print_base16(hex_buf, sizeof hex_buf);
     // should print out the hex alphabet
+}
+
+/*
+ * Run a test on the string-to-raw base16 conversion
+ */
+static void test_read_base16()
+{
+    const char hex_str[] = "0123456789AbCDef";
+    uint8_t out_buf[((sizeof hex_str) - 1) / 2]  = { 0 };
+    read_base16(out_buf, hex_str, strlen(hex_str));
+    print_base16(out_buf, sizeof out_buf);
+    // should print hex alphabet
+}
+
+/*
+ * Run a test on the string-to-raw base64 conversion
+ */
+static void test_read_base64()
+{
+    const char base64_str[] = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t";
+//    const char base64_str[] = "SSdt";
+    uint8_t out_buf[(((sizeof base64_str) - 1) * 3) / 4] = { 0 };
+    read_base64(out_buf, base64_str, strlen(base64_str));
+    print_base16(out_buf, sizeof out_buf);
+    print_base64(out_buf, sizeof out_buf);
+}
+
+/*
+ * Run a test using both read and print base64
+ */
+static void test_base64()
+{
+    // test by length ascending to easily print output as a (null term'd) string
+    const char *test_str = "c3VyZS4=";
+    uint8_t test_out[50] = { 0 };
+    uint32_t len = read_base64(test_out, test_str, strlen(test_str));
+    printf("%s\n", test_out);   // should print "sure."
+    print_base64(test_out, len);
+
+    test_str = "YXN1cmUu";
+    len = read_base64(test_out, test_str, strlen(test_str));
+    printf("%s\n", test_out);   // should print "asure."
+    print_base64(test_out, len);
+
+    // should print "bGVhc3VyZS4="
+    test_str = "ZWFzdXJlLg==";
+    len = read_base64(test_out, test_str, strlen(test_str));
+    printf("%s\n", test_out);   // should print "easure."
+    print_base64(test_out, len);
+
+    test_str = "cGxlYXN1cmUu";
+    len = read_base64(test_out, test_str, strlen(test_str));
+    printf("%s\n", test_out);   // should print "leasure."
+    print_base64(test_out, len);
 }
 
