@@ -166,9 +166,10 @@ static char to_base64(uint8_t num)
 /*
  * Read a base 16 string & convert to raw bytes
  * @param dest destination buffer for decoded bytes; already allocated
+ *        precondition: length of dest buffer >= length of src / 2
  * @param src source base 16 string
  * @param len number of characters in input string
- *        precondition: len >= sizeof dest buffer / 2
+ *        precondition: length of src buffer >= len
  */
 void read_base16(uint8_t *dest, const char *src, uint32_t len)
 {
@@ -203,10 +204,11 @@ static uint8_t char16_to_raw(char char16)
 /*
  * Read a base 64 string & convert to raw bytes
  * @param destination buffer; already allocated
+ *        precondition: length of destination buffer >= 3/4 length of string
  * @param src source base 64 string
  * @param len number of characters in input string
  *        precondition: must be multiple of 4, with any padding represented as =
- *        precondition: length of destination buffer >= 3/4 length of string
+ *        precondition: length of src string >= len
  * @return number of non-padding bytes decoded from the source string
  */
 uint32_t read_base64(uint8_t *dest, const char * src, uint32_t len)
