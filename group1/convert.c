@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "convert.h"
 
@@ -10,6 +11,8 @@ static char to_base64(uint8_t num);
 static uint8_t char16_to_raw(char char16);
 static void decode_4bytes_base64(const char *src, uint8_t *dest);
 static uint8_t char64_to_raw(char char64);
+static void read_base64_with_padding(char *dest, const uint8_t *src,
+        uint32_t len);
 
 /*
  * print the bytes in a buffer as hexadecimal characters
@@ -31,6 +34,7 @@ void print_base16(const uint8_t *src, uint32_t len)
  * padding that were used, where '=' means one byte of padding and '==' two.
  * @param src pointer to data to print
  * @param len number of bytes in buffer
+ *        precondition: length of src buffer >= len
  */
 void print_base64(const uint8_t *src, uint32_t len)
 {
@@ -43,20 +47,69 @@ void print_base64(const uint8_t *src, uint32_t len)
         printf("%s", printable_group);
     }
     // process any remaining bytes with padding as necessary
-    uint32_t off = groups_of_4 * 3;
     uint32_t remaining = len % 3;
     if (remaining) {
-        uint8_t last_group[3] = { 0 };
-        for (i = 0; i < remaining; ++i)
-            last_group[i] = src[off + i];
-        read_3bytes_base64(last_group, printable_group);
-        char padding = "="[0];
-        printable_group[3] = padding;
-        if (remaining == 1)
-            printable_group[2] = padding;
+        uint32_t off = groups_of_4 * 3;
+        read_base64_with_padding(printable_group, src + off, remaining);
         printf("%s", printable_group);
     }
     printf("\n");
+}
+
+/*
+ * Perform the same operation as print_base64 but write the output to a
+ * (null-terminated) string instead of printing it.
+ * @param dest pointer to string to write encoded output to
+ * @param src pointer to buffer to encode
+ * @param len number of bytes to read from src buffer
+ *        precondition: length of src buffer >= len
+ *        precondition: length of dest buffer >= ((4 * len) / 3) + 1
+ */
+void sprint_base64(char *dest, const uint8_t *src, uint32_t len)
+{
+    uint32_t groups_of_4 = len / 3;
+    uint32_t i, out_index = 0;
+    for (i = 0; i < groups_of_4; ++i) {
+        read_3bytes_base64(src + i * 3, dest + out_index);
+        out_index += 4;
+    }
+    uint32_t remaining = len % 3;
+    if (remaining) {
+        uint32_t off = groups_of_4 * 3;
+        read_base64_with_padding(dest + out_index, src + off, remaining);
+        out_index += 4;
+    }
+    dest[out_index] = '\0';
+}
+
+/*
+ * Encode a group of at most 3 raw base-64 numbers to 4 printable characters,
+ * with the padding character '=' appended to indicate the number of bytes
+ * of padding used.
+ * @param dest pointer to buffer to write the output to; does not write a null
+ *        character.
+ *        precondition: length of destination buffer >= 4
+ * @param src pointer to raw base64 numbers to decode
+ *        precondition: length of src buffer >= 3
+ * @param len number of bytes in the src buffer
+ *        precondition: len < 3 - only use this function to encode a group of
+ *        less than 4 (3 bytes) base64 numbers
+ */
+static void read_base64_with_padding(char *dest, const uint8_t *src,
+        uint32_t len)
+{
+    assert(len < 3);
+    // copy into intermediate buffer to ensure 0-padding without reading
+    // out-of-bounds
+    uint8_t last_group[3] = { 0 };
+    uint32_t i;
+    for (i = 0; i < len; ++i)
+        last_group[i] = src[i];
+    read_3bytes_base64(last_group, dest);
+    char padding = "="[0];
+    dest[3] = padding;
+    if (len == 1)
+        dest[2] = padding;
 }
 
 /*

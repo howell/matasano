@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "convert.h"
 
@@ -93,27 +94,36 @@ static void test_read_base64()
  */
 static void test_base64()
 {
-    // test by length ascending to easily print output as a (null term'd) string
+    // test by length ascending to easily print output as a (null term'd)
+    // string
     const char *test_str = "c3VyZS4=";
     uint8_t test_out[50] = { 0 };
     uint32_t len = read_base64(test_out, test_str, strlen(test_str));
     printf("%s\n", test_out);   // should print "sure."
-    print_base64(test_out, len);
+    char out_str[50] = { '\0'};
+    sprint_base64(out_str, test_out, len);
+    assert(strcmp(out_str, test_str) == 0);
 
     test_str = "YXN1cmUu";
     len = read_base64(test_out, test_str, strlen(test_str));
     printf("%s\n", test_out);   // should print "asure."
     print_base64(test_out, len);
+    sprint_base64(out_str, test_out, len);
+    assert(strcmp(out_str, test_str) == 0);
 
-    // should print "bGVhc3VyZS4="
     test_str = "ZWFzdXJlLg==";
     len = read_base64(test_out, test_str, strlen(test_str));
     printf("%s\n", test_out);   // should print "easure."
     print_base64(test_out, len);
+    sprint_base64(out_str, test_out, len);
+    assert(strcmp(out_str, test_str) == 0);
 
     test_str = "cGxlYXN1cmUu";
     len = read_base64(test_out, test_str, strlen(test_str));
     printf("%s\n", test_out);   // should print "leasure."
     print_base64(test_out, len);
+    sprint_base64(out_str, test_out, len);
+    assert(strcmp(out_str, test_str) == 0);
+    printf("Test Passed!\n");
 }
 

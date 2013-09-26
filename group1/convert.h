@@ -22,6 +22,17 @@ void print_base16(const uint8_t *src, uint32_t len);
 void print_base64(const uint8_t *src, uint32_t len);
 
 /*
+ * Perform the same operation as print_base64 but write the output to a
+ * (null-terminated) string instead of printing it.
+ * @param dest pointer to string to write encoded output to
+ * @param src pointer to buffer to encode
+ * @param len number of bytes to read from src buffer
+ *        precondition: length of src buffer >= len
+ *        precondition: length of dest buffer >= ((4 * len) / 3) + 1
+ */
+void sprint_base64(char *dest, const uint8_t *src, uint32_t len);
+
+/*
  * Read a base 16 string & convert to raw bytes
  * @param destination buffer; already allocated
  * @param src source base 16 string
