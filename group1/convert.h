@@ -8,8 +8,20 @@
  * print the bytes in a buffer as hexadecimal characters
  * @param src pointer to data to print
  * @param len number of bytes in buffer
+ *        precondition: length of src buffer >= len
  */
 void print_base16(const uint8_t *src, uint32_t len);
+
+/*
+ * Perform the same operation as print_base16 but write the output to a
+ * string (including a nul character) instead of printing it.
+ * @param dest pointer to string to write output to
+ *        precondition: length of dest buffer >= 2 * length of src buffer + 1
+ * @param src pointer to data to print
+ * @param len number of bytes in buffer
+ *        precondition: length of src buffer >= len
+ */
+void sprint_base16(char *dest, const uint8_t *src, uint32_t len);
 
 /*
  * Print a buffer in base 64. If the number of bytes in the input is not
@@ -18,6 +30,7 @@ void print_base16(const uint8_t *src, uint32_t len);
  * padding that were used, where '=' means one byte of padding and '==' two.
  * @param src pointer to data to print
  * @param len number of bytes in buffer
+ *        precondition: length of src buffer >= len
  */
 void print_base64(const uint8_t *src, uint32_t len);
 
