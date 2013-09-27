@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "convert.h"
+#include "xor.h"
 
 // private functions
 static void test_print_base64();
@@ -13,6 +14,7 @@ static void test_read_base16();
 static void test_read_base64();
 static void test_base_16();
 static void test_base64();
+static void test_fixed_xor();
 
 const uint8_t test_buf[] = {
     0x49, 0x27, 0x6d, 0x20, 0x6b, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67,
@@ -24,6 +26,7 @@ const uint8_t test_buf[] = {
 
 int main(void)
 {
+    test_fixed_xor();
     test_print_base64();
     test_print_base16();
     test_read_base16();
@@ -139,5 +142,27 @@ static void test_base64()
     sprint_base64(out_str, test_out, len);
     assert(strcmp(out_str, test_str) == 0);
     printf("Base64 Test Passed!\n");
+}
+
+/*
+ * Test the fixed_xor function
+ */
+static void test_fixed_xor()
+{
+    const char src1[] = "1c0111001f010100061a024b53535009181c";
+    const char src2[] = "686974207468652062756c6c277320657965";
+    assert(sizeof src1 == sizeof src2);
+    uint8_t src1_raw[((sizeof src1) - 1) / 2];
+    uint8_t src2_raw[((sizeof src2) - 1) / 2];
+    read_base16(src1_raw, src1, strlen(src1));
+    read_base16(src2_raw, src2, strlen(src2));
+    uint8_t out_raw[sizeof src1_raw];
+    fixed_xor(out_raw, src1_raw, src2_raw, sizeof out_raw);
+    char out_str[sizeof src1];
+    sprint_base16(out_str, out_raw, sizeof out_raw);
+    printf("Fixed XOR Result: %s\n", out_str);
+    const char *expected = "746865206b696420646f6e277420706c6179";
+    assert(strcmp(out_str, expected) == 0);
+    printf("Fixed XOR Test Passed!\n");
 }
 

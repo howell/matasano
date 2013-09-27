@@ -11,4 +11,20 @@
 
 #include "xor.h"
 
+/*
+ * Compute the xor of two equal-length buffers
+ * @param dest pointer to buffer to write the output to
+ * @param src1 pointer to first input buffer
+ * @param src2 pointer to second input buffer, order of params doesn't matter
+ * @param len number of bytes to xor
+ *        precondition: length of destination and src buffers >= len
+ */
+void fixed_xor(uint8_t *dest, const uint8_t *src1, const uint8_t *src2,
+        size_t len)
+{
+    // TODO: possible use of the restrict keyword?
+    size_t i;
+    for (i = 0; i < len; ++i)
+        dest[i] = src1[i] ^ src2[i];
+}
 
