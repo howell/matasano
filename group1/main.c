@@ -83,12 +83,12 @@ static void test_read_base16()
 
 static void test_base_16()
 {
-    const char hex_str[] = "0123456789abcdef";
-    uint8_t out_buf[((sizeof hex_str) - 1) / 2];
+    const char *hex_str = "0123456789abcdef";
+    uint8_t out_buf[8];
     read_base16(out_buf, hex_str, strlen(hex_str));
     char out_str[sizeof out_buf + 1] = { '\0' };
     sprint_base16(out_str, out_buf, sizeof out_buf);
-    printf("%s\n", out_str);
+    printf("%s\n%s\n", out_str, hex_str);
     assert(strcmp(out_str, hex_str) == 0);
     printf("Base16 Test Passed!\n");
 }
