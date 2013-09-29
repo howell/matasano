@@ -1,5 +1,6 @@
-CC=gcc
-CFLAGS=-Wall -fstrict-aliasing -Wstrict-aliasing -g
+CC=clang
+CLANGFLAGS=-x c -Wall -Werror -Wextra -std=c99 -g
+GCCFLAGS=-Wall -fstrict-aliasing -Wstrict-aliasing -g
 
 SRCS=main.c \
 	 convert.c convert.h \
@@ -8,7 +9,7 @@ SRCS=main.c \
 OBJFILE=test.o
 
 test: $(SRCS)
-	$(CC) -o $(OBJFILE) $(CFLAGS) $(SRCS)
+	$(CC) -o $(OBJFILE) $(CLANGFLAGS) $(SRCS)
 
 clean:
 	rm -rf $(OBJFILE) $(OBJFILE).dSYM
