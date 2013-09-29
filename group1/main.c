@@ -36,7 +36,8 @@ int main(void)
     test_base64();
     struct letter_frequencies f = { {0} };
     calculate_letter_frequencies("abcdefghijklmnopqrstuvwxyz", &f);
-    print_frequencies(&f);
+//    print_frequencies(&f);
+    printf("%.2f\n", compare_to_english(&f));
 
     return 0;
 }

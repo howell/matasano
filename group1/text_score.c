@@ -1,5 +1,6 @@
 
 #include <string.h>
+#include <float.h>
 #include <assert.h>
 #include <stdio.h>
 
@@ -8,8 +9,11 @@
 // private functions
 static uint32_t is_letter(char c);
 static char downcase(char c);
+double diff_frequencies(const struct letter_frequencies *src1,
+        const struct letter_frequencies *src2);
+static double absolute_difference(double x, double y);
 
-static struct letter_frequencies english_languange = {
+const static struct letter_frequencies english_languange = {
     .freqs = {
         7.74,   // a
         1.70,   // b
@@ -40,6 +44,9 @@ static struct letter_frequencies english_languange = {
     }
 };
 
+static const size_t FREQS_LEN = sizeof english_languange.freqs /
+    sizeof english_languange.freqs[0];
+
 /*
  * Calculate the frequency of each letter in a string
  * @param src the string to evaluate
@@ -67,8 +74,23 @@ void calculate_letter_frequencies(const char *src,
     // Normalize
     if (letters == 0)
         letters = 1;
-    for (i = 0; i < sizeof out->freqs; ++i)
+    for (i = 0; i < FREQS_LEN; ++i)
         out->freqs[i] = (out->freqs[i]  * 100.0) / (double) letters;
+}
+
+/*
+ * Calculate the difference in letter frequencies between a given distribution
+ * and the english language
+ * @param src pointer to letter frequencies to compare
+ * @return absolute difference in frequencies between source and the english
+ *         language, the sum of the absolute differences in the frequency of
+ *         each letter
+ */
+double compare_to_english(const struct letter_frequencies *src)
+{
+    if (!src)
+        return DBL_MAX;
+    return diff_frequencies(src, &english_languange);
 }
 
 /*
@@ -78,8 +100,41 @@ void calculate_letter_frequencies(const char *src,
 void print_frequencies(const struct letter_frequencies *src)
 {
     size_t i;
-    for (i = 0; i < 26; ++i)
+    for (i = 0; i < FREQS_LEN; ++i)
         printf("%c : %.2f%%\n", 'a' + (char) i, src->freqs[i]);
+}
+
+/*
+ * Calculate the absolute difference in letter frequencies between two
+ * distributions
+ * @param src1 one of the letter frequencies to compare
+ * @param src2 second letter frequencies to compare
+ * @return absolute difference in frequencies between src1 and src2, e.g.
+ *         the sum of the absolute differences in the frequency of each letter
+ */
+double diff_frequencies(const struct letter_frequencies *src1,
+        const struct letter_frequencies *src2)
+{
+    if (!src1 || !src2)
+        return DBL_MAX;
+    double difference = 0;
+    size_t i;
+    for(i = 0; i < FREQS_LEN; ++i)
+        difference += absolute_difference(src1->freqs[i], src2->freqs[i]);
+    return difference;
+}
+
+/*
+ * Return the absolute difference between two doubles
+ * @param x
+ * @param y
+ * @return |x - y|
+ */
+static double absolute_difference(double x, double y)
+{
+    if (x > y)
+        return x - y;
+    return y - x;
 }
 
 /*

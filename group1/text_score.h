@@ -18,6 +18,15 @@ struct letter_frequencies {
  */
 void calculate_letter_frequencies(const char *src,
         struct letter_frequencies *out);
+/*
+ * Calculate the difference in letter frequencies between a given distribution
+ * and the english language
+ * @param src pointer to letter frequencies to compare
+ * @return absolute difference in frequencies between source and the english
+ *         language, the sum of the absolute differences in the frequency of
+ *         each letter
+ */
+double compare_to_english(const struct letter_frequencies *src);
 
 /*
  * Print a letter frequency struct
