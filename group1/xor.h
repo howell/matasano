@@ -9,6 +9,9 @@
  *  5) ...
  */
 
+#ifndef ___xor_h___
+#define ___xor_h___
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -23,3 +26,4 @@
 void fixed_xor(uint8_t *dest, const uint8_t *src1, const uint8_t *src2,
         size_t len);
 
+#endif  // ___xor_h___
