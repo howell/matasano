@@ -26,4 +26,15 @@
 void fixed_xor(uint8_t *dest, const uint8_t *src1, const uint8_t *src2,
         size_t len);
 
+/*
+ * XOR each byte in a buffer with a given key
+ * @param key
+ * @param src
+ * @param dest
+ * @param len number of bytes to xor
+ *        precondition: length of src and dest buffers >= len
+ */
+void repeated_key_xor(uint8_t key, const uint8_t *src, uint8_t *dest,
+        size_t len);
+
 #endif  // ___xor_h___
