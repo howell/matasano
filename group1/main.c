@@ -16,6 +16,7 @@ static void test_read_base64();
 static void test_base_16();
 static void test_base64();
 static void test_fixed_xor();
+static void test_break_repeat_key();
 
 const uint8_t test_buf[] = {
     0x49, 0x27, 0x6d, 0x20, 0x6b, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67,
@@ -38,7 +39,7 @@ int main(void)
     calculate_letter_frequencies("abcdefghijklmnopqrstuvwxyz", &f);
 //    print_frequencies(&f);
     printf("%.2f\n", compare_to_english(&f));
-
+    test_break_repeat_key();
     return 0;
 }
 
@@ -171,5 +172,23 @@ static void test_fixed_xor()
     assert(strcmp(out_str, expected) == 0);
     printf("Fixed XOR Test Passed!\n");
 
+}
+
+/*
+ * Test breaking repeated key xor
+ */
+static void test_break_repeat_key()
+{
+    char cipher_text[] = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
+    uint8_t raw_cipher[(sizeof cipher_text - 1) / 2];
+    read_base16(raw_cipher, cipher_text, strlen(cipher_text));
+    uint8_t key = detect_repeated_key_xor(raw_cipher, sizeof raw_cipher);
+    printf("key: 0x%02x -- %c\n", key, key);
+    repeated_key_xor(key, raw_cipher, raw_cipher, sizeof raw_cipher);
+    size_t i;
+    for (i = 0; i < sizeof raw_cipher; ++i)
+        printf("%c", raw_cipher[i]);
+    printf("\n");
+    // Cooking MC's like a pound of bacon
 }
 

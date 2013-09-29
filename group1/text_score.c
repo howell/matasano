@@ -65,7 +65,7 @@ void calculate_letter_frequencies(const char *src,
         if (is_letter(c)) {
             c = downcase(c);
             uint32_t index = c - 'a';
-            assert(index < sizeof out->freqs);
+            assert(index < FREQS_LEN);
             out->freqs[index] += 1;
             ++letters;
         }
@@ -73,7 +73,7 @@ void calculate_letter_frequencies(const char *src,
     }
     // Normalize
     if (letters == 0)
-        letters = 1;
+        return;
     for (i = 0; i < FREQS_LEN; ++i)
         out->freqs[i] = (out->freqs[i]  * 100.0) / (double) letters;
 }

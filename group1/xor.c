@@ -9,7 +9,11 @@
  *  5) ...
  */
 
+#include <stdlib.h>
+#include <float.h>
+
 #include "xor.h"
+#include "text_score.h"
 
 /*
  * Compute the xor of two equal-length buffers
@@ -46,5 +50,39 @@ void repeated_key_xor(uint8_t key, const uint8_t *src, uint8_t *dest,
     size_t i;
     for (i = 0; i < len; ++i)
         dest[i] = src[i] ^ key;
+}
+
+/*
+ * Break a repeated key xor by decypting with each possible key and analyzing
+ * the letter frequencies of each text. Look for the key that produces text
+ * that most closely resembles the letter frequencies of the english language.
+ * @param src pointer to encrpyted (english language) string
+ * @param len length of src buffer
+ *        precondition: length of src buffer >= len
+ * @return best guess for the key that src has been repeat-key-encrypted with
+ */
+uint8_t detect_repeated_key_xor(const uint8_t *src, size_t len)
+{
+    if (!src)
+        return 0;
+    char *decrypted = malloc(len);
+    if (!decrypted)
+        return 0;
+    size_t i;
+    uint8_t best_guess = 0;
+    double closest_diff = DBL_MAX;
+    for (i = 0; i <= UINT8_MAX; ++i) {
+        uint8_t key = i;
+        repeated_key_xor(key, src, (uint8_t *) decrypted, len);
+        struct letter_frequencies freqs = { {0} };
+        calculate_letter_frequencies(decrypted, &freqs);
+        double diff = compare_to_english(&freqs);
+        if (diff < closest_diff) {
+            closest_diff = diff;
+            best_guess = key;
+        }
+    }
+    free(decrypted);
+    return best_guess;
 }
 

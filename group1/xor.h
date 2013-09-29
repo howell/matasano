@@ -37,4 +37,15 @@ void fixed_xor(uint8_t *dest, const uint8_t *src1, const uint8_t *src2,
 void repeated_key_xor(uint8_t key, const uint8_t *src, uint8_t *dest,
         size_t len);
 
+/*
+ * Break a repeated key xor by decypting with each possible key and analyzing
+ * the letter frequencies of each text. Look for the key that produces text
+ * that most closely resembles the letter frequencies of the english language.
+ * @param src pointer to encrpyted (english language) string
+ * @param len length of src buffer
+ *        precondition: length of src buffer >= len
+ * @return best guess for the key that src has been repeat-key-encrypted with
+ */
+uint8_t detect_repeated_key_xor(const uint8_t *src, size_t len);
+
 #endif  // ___xor_h___
