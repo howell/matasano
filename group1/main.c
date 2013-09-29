@@ -6,6 +6,7 @@
 
 #include "convert.h"
 #include "xor.h"
+#include "text_score.h"
 
 // private functions
 static void test_print_base64();
@@ -33,6 +34,10 @@ int main(void)
     test_read_base64();
     test_base_16();
     test_base64();
+    struct letter_frequencies f = { {0} };
+    calculate_letter_frequencies("abcdefghijklmnopqrstuvwxyz", &f);
+    print_frequencies(&f);
+
     return 0;
 }
 
@@ -164,5 +169,6 @@ static void test_fixed_xor()
     const char *expected = "746865206b696420646f6e277420706c6179";
     assert(strcmp(out_str, expected) == 0);
     printf("Fixed XOR Test Passed!\n");
+
 }
 
