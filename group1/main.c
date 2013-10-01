@@ -18,7 +18,7 @@ static void test_base64();
 static void test_fixed_xor();
 static void test_break_repeat_byte();
 static void test_hamming_distance();
-
+static void test_repeat_key_xor();
 
 int main(void)
 {
@@ -31,6 +31,7 @@ int main(void)
     test_base64();
     test_break_repeat_byte();
     test_hamming_distance();
+    test_repeat_key_xor();
     return 0;
 }
 
@@ -185,7 +186,7 @@ static void test_break_repeat_byte()
     repeated_byte_xor(key, raw_cipher, raw_cipher, sizeof raw_cipher);
     assert(memcmp(raw_cipher, "Cooking MC's like a pound of bacon",
                 sizeof raw_cipher) == 0);
-    printf("Passed repeat key xor test!\n");
+    printf("Repeat byte xor test passed!\n");
 }
 
 /*
@@ -199,5 +200,23 @@ static void test_hamming_distance()
             strlen(a));
     uint32_t expected = 37;
     assert(hamming == expected);
+    printf("Hamming distance test passed!\n");
+}
+
+/*
+ * Test the repeated key xor function
+ */
+static void test_repeat_key_xor()
+{
+    uint8_t key[] = { 'I', 'C', 'E' };
+    const char src[] = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal";
+    uint8_t encrpyted[sizeof src - 1];
+    repeated_key_xor(key, sizeof key, (uint8_t *) src, encrpyted,
+            sizeof encrpyted);
+    const char expected[] = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f";
+    char test_out_str[sizeof expected];
+    sprint_base16(test_out_str, encrpyted, sizeof encrpyted);
+    assert(strcmp(test_out_str, expected) == 0);
+    printf("Repeat key xor test passed!\n");
 }
 

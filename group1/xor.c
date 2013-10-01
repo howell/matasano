@@ -3,7 +3,7 @@
  * Functions related to xor-ing for the Matasano crypto challenges,
  * particularly:
  *  1) Fixed xor
- *  2) Single-character xor Cipher
+ *  2) Single-character xor cipher
  *  3) Detecting single-character xor
  *  4) Repeating-key xor cipher
  *  5) ...
@@ -50,6 +50,31 @@ void repeated_byte_xor(uint8_t key, const uint8_t *src, uint8_t *dest,
     size_t i;
     for (i = 0; i < len; ++i)
         dest[i] = src[i] ^ key;
+}
+
+/*
+ * Perform a repeated key xor encryption
+ * @param key buffer that serves as the key
+ * @param key_size length of the key
+ *        precondition: length of key buffer >= key_size
+ * @param src buffer to be encrypted
+ * @param dest buffer to hold the result
+ * @param len number of bytes to encrpyt
+ *        precondition: length of source and destination buffers >= len
+ */
+void repeated_key_xor(const uint8_t *key, size_t key_size, const uint8_t *src,
+        uint8_t *dest, size_t len)
+{
+    size_t i, j, block;
+    for (i = 0; i < len / key_size; ++i) {
+        block = i * key_size;
+        for (j = 0; j < key_size; ++j)
+            dest[block + j] = key[j] ^ src[block + j];
+    }
+    size_t remaining = len % key_size;
+    block = i * key_size;
+    for (j = 0; j < remaining; ++j)
+        dest[block + j] = key[j] ^ src[block + j];
 }
 
 /*

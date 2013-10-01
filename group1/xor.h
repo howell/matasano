@@ -38,6 +38,19 @@ void repeated_byte_xor(uint8_t key, const uint8_t *src, uint8_t *dest,
         size_t len);
 
 /*
+ * Perform a repeated key xor encryption
+ * @param key buffer that serves as the key
+ * @param key_size length of the key
+ *        precondition: length of key buffer >= key_size
+ * @param src buffer to be encrypted
+ * @param dest buffer to hold the result
+ * @param len number of bytes to encrpyt
+ *        precondition: length of source and destination buffers >= len
+ */
+void repeated_key_xor(const uint8_t *key, size_t key_size, const uint8_t *src,
+        uint8_t *dest, size_t len);
+
+/*
  * Break a repeated key xor by decypting with each possible key and analyzing
  * the letter frequencies of each text. Look for the key that produces text
  * that most closely resembles the letter frequencies of the english language.
