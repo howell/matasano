@@ -100,6 +100,8 @@ double compare_to_english(const struct letter_frequencies *src)
  */
 void print_frequencies(const struct letter_frequencies *src)
 {
+    if (!src)
+        return;
     size_t i;
     for (i = 0; i < FREQS_LEN; ++i)
         printf("%c : %.2f%%\n", 'a' + (char) i, src->freqs[i]);
@@ -171,9 +173,12 @@ static char downcase(char c)
  * @param len length of the two buffers
  *        precondition: length of source buffers are equal
  *        precondition: length of both source buffers >= len
+ * @return number of differing bits between inputs
  */
 uint32_t hamming_distance(const uint8_t *src1, const uint8_t *src2, size_t len)
 {
+    if (!src1 || !src2)
+        return UINT32_MAX;
     uint32_t distance = 0;
     size_t i;
     for (i = 0; i < len; ++i)

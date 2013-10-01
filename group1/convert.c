@@ -22,6 +22,8 @@ static void read_base64_with_padding(char *dest, const uint8_t *src,
  */
 void print_base16(const uint8_t *src, size_t len)
 {
+    if (!src)
+        return;
     size_t i;
     for (i = 0; i < len; i++)
         printf("%02x", src[i]);
@@ -39,6 +41,8 @@ void print_base16(const uint8_t *src, size_t len)
  */
 void sprint_base16(char *dest, const uint8_t *src, size_t len)
 {
+    if (!dest || !src)
+        return;
     size_t i;
     for (i = 0; i < len; i++)
         sprintf(dest + i * 2, "%02x", src[i]);
@@ -56,6 +60,8 @@ void sprint_base16(char *dest, const uint8_t *src, size_t len)
  */
 void print_base64(const uint8_t *src, size_t len)
 {
+    if (!src)
+        return;
     // process the input as groups of 4 6-bit numbers
     size_t groups_of_4 = len / 3;  // groups of 4 base64 numbers
     char printable_group[5] = { '\0' }; // print as a string
@@ -85,6 +91,8 @@ void print_base64(const uint8_t *src, size_t len)
  */
 void sprint_base64(char *dest, const uint8_t *src, size_t len)
 {
+    if (!dest || !src)
+        return;
     size_t groups_of_4 = len / 3;
     size_t i, out_index = 0;
     for (i = 0; i < groups_of_4; ++i) {
@@ -116,6 +124,8 @@ void sprint_base64(char *dest, const uint8_t *src, size_t len)
 static void read_base64_with_padding(char *dest, const uint8_t *src,
         size_t len)
 {
+    if (!dest || !src)
+        return;
     assert(len < 3);
     // copy into intermediate buffer to ensure 0-padding without reading
     // out-of-bounds
@@ -139,6 +149,8 @@ static void read_base64_with_padding(char *dest, const uint8_t *src,
  */
 static void read_3bytes_base64(const uint8_t *src, char *out)
 {
+    if (!src || !out)
+        return;
     uint8_t first = src[0] >> 2;
     uint8_t second = ((src[0] &  0x3) << 4) | (src[1] >> 4);
     uint8_t third = ((src[1] & 0xf) << 2) | (src[2] >> 6);
@@ -173,6 +185,8 @@ static char to_base64(uint8_t num)
  */
 void read_base16(uint8_t *dest, const char *src, size_t len)
 {
+    if (!dest || !src)
+        return;
     size_t i;
     for (i = 0; i < len; ++i) {
         char char16 = src[i];
@@ -211,8 +225,10 @@ static uint8_t char16_to_raw(char char16)
  *        precondition: length of src string >= len
  * @return number of non-padding bytes decoded from the source string
  */
-size_t read_base64(uint8_t *dest, const char * src, size_t len)
+size_t read_base64(uint8_t *dest, const char *src, size_t len)
 {
+    if (!dest || !src)
+        return 0;
     size_t groups_of_4 = len / 4;  // groups of 4 base 64 numbers
     size_t i;
     size_t out_index = 0;
@@ -240,6 +256,8 @@ size_t read_base64(uint8_t *dest, const char * src, size_t len)
  */
 static void decode_4bytes_base64(const char *src, uint8_t *dest)
 {
+    if (!src || !dest)
+        return;
     uint8_t group_of_4[4];
     size_t i;
     for (i = 0; i < 4; ++i)
