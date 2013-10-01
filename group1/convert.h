@@ -3,6 +3,7 @@
 #define ___convert_h___
 
 #include <stdint.h>
+#include <stddef.h>
 
 /*
  * print the bytes in a buffer as hexadecimal characters
@@ -10,7 +11,7 @@
  * @param len number of bytes in buffer
  *        precondition: length of src buffer >= len
  */
-void print_base16(const uint8_t *src, uint32_t len);
+void print_base16(const uint8_t *src, size_t len);
 
 /*
  * Perform the same operation as print_base16 but write the output to a
@@ -21,7 +22,7 @@ void print_base16(const uint8_t *src, uint32_t len);
  * @param len number of bytes in buffer
  *        precondition: length of src buffer >= len
  */
-void sprint_base16(char *dest, const uint8_t *src, uint32_t len);
+void sprint_base16(char *dest, const uint8_t *src, size_t len);
 
 /*
  * Print a buffer in base 64. If the number of bytes in the input is not
@@ -32,7 +33,7 @@ void sprint_base16(char *dest, const uint8_t *src, uint32_t len);
  * @param len number of bytes in buffer
  *        precondition: length of src buffer >= len
  */
-void print_base64(const uint8_t *src, uint32_t len);
+void print_base64(const uint8_t *src, size_t len);
 
 /*
  * Perform the same operation as print_base64 but write the output to a
@@ -43,7 +44,7 @@ void print_base64(const uint8_t *src, uint32_t len);
  *        precondition: length of src buffer >= len
  *        precondition: length of dest buffer >= ((4 * len) / 3) + 1
  */
-void sprint_base64(char *dest, const uint8_t *src, uint32_t len);
+void sprint_base64(char *dest, const uint8_t *src, size_t len);
 
 /*
  * Read a base 16 string & convert to raw bytes
@@ -53,7 +54,7 @@ void sprint_base64(char *dest, const uint8_t *src, uint32_t len);
  * @param len number of characters in input string
  *        precondition: length of src buffer >= len
  */
-void read_base16(uint8_t *dest, const char *src, uint32_t len);
+void read_base16(uint8_t *dest, const char *src, size_t len);
 
 /*
  * Read a base 64 string & convert to raw bytes
@@ -65,7 +66,7 @@ void read_base16(uint8_t *dest, const char *src, uint32_t len);
  *        precondition: length of src string >= len
  * @return number of non-padding bytes decoded from the source string
  */
-uint32_t read_base64(uint8_t *dest, const char *src, uint32_t len);
+size_t read_base64(uint8_t *dest, const char *src, size_t len);
 
 #endif  // ___convert_h___
 
