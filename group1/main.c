@@ -17,6 +17,7 @@ static void test_base_16();
 static void test_base64();
 static void test_fixed_xor();
 static void test_break_repeat_key();
+static void test_hamming_distance();
 
 const uint8_t test_buf[] = {
     0x49, 0x27, 0x6d, 0x20, 0x6b, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67,
@@ -40,6 +41,7 @@ int main(void)
 //    print_frequencies(&f);
     printf("%.2f\n", compare_to_english(&f));
     test_break_repeat_key();
+    test_hamming_distance();
     return 0;
 }
 
@@ -189,6 +191,23 @@ static void test_break_repeat_key()
     for (i = 0; i < sizeof raw_cipher; ++i)
         printf("%c", raw_cipher[i]);
     printf("\n");
+    assert(memcmp(raw_cipher, "Cooking MC's like a pound of bacon",
+                sizeof raw_cipher) == 0);
+    printf("Passed repeat key xor test!\n");
     // Cooking MC's like a pound of bacon
+}
+
+/*
+ * Test the hamming distance function
+ */
+static void test_hamming_distance()
+{
+    const char *a = "this is a test";
+    const char *b = "wokka wokka!!!";
+    uint32_t hamming = hamming_distance((uint8_t *) a, (uint8_t *) b,
+            strlen(a));
+    uint32_t expected = 37;
+    printf("Hamming distance = %d, expected %d\n", hamming, expected);
+    assert(hamming == expected);
 }
 

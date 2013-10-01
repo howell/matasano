@@ -3,6 +3,7 @@
 #define ___text_score_h___
 
 #include <stdint.h>
+#include <stddef.h>
 
 // Type to represent a set of letter frequencies.
 struct letter_frequencies {
@@ -33,5 +34,16 @@ double compare_to_english(const struct letter_frequencies *src);
  * @param src pointer to frequencies to print
  */
 void print_frequencies(const struct letter_frequencies *src);
+
+/*
+ * Compute the Hamming distance (the number of differing bits) between two
+ * equal-length buffers
+ * @param src1 first buffer
+ * @param src2 second buffer
+ * @param len length of the two buffers
+ *        precondition: length of source buffers are equal
+ *        precondition: length of both source buffers >= len
+ */
+uint32_t hamming_distance(const uint8_t *src1, const uint8_t *src2, size_t len);
 
 #endif  // ___text_score_h___

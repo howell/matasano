@@ -12,6 +12,7 @@ static char downcase(char c);
 double diff_frequencies(const struct letter_frequencies *src1,
         const struct letter_frequencies *src2);
 static double absolute_difference(double x, double y);
+static uint32_t differing_bits(uint8_t x, uint8_t y);
 
 const static struct letter_frequencies english_languange = {
     .freqs = {
@@ -160,5 +161,42 @@ static char downcase(char c)
     if ((c >= 'A') && (c <= 'Z'))
         return c - 'A' + 'a';
     return c;
+}
+
+/*
+ * Compute the Hamming distance (the number of differing bits) between two
+ * equal-length buffers
+ * @param src1 first buffer
+ * @param src2 second buffer
+ * @param len length of the two buffers
+ *        precondition: length of source buffers are equal
+ *        precondition: length of both source buffers >= len
+ */
+uint32_t hamming_distance(const uint8_t *src1, const uint8_t *src2, size_t len)
+{
+    uint32_t distance = 0;
+    size_t i;
+    for (i = 0; i < len; ++i)
+        distance += differing_bits(src1[i], src2[i]);
+    return distance;
+}
+
+/*
+ * Count the number of differing bits in two characters
+ * @param x
+ * @param y
+ * @return the number of differing bits between x and y, e.g. the Hamming
+ * distance for a string of length one
+ */
+static uint32_t differing_bits(uint8_t x, uint8_t y)
+{
+    uint32_t diff = 0;
+    uint32_t z = x ^ y;
+    while (z) {
+        if (z & 1)
+            ++diff;
+        z = z >> 1;
+    }
+    return diff;
 }
 
