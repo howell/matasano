@@ -34,7 +34,7 @@ void fixed_xor(uint8_t *dest, const uint8_t *src1, const uint8_t *src2,
  * @param len number of bytes to xor
  *        precondition: length of src and dest buffers >= len
  */
-void repeated_key_xor(uint8_t key, const uint8_t *src, uint8_t *dest,
+void repeated_byte_xor(uint8_t key, const uint8_t *src, uint8_t *dest,
         size_t len);
 
 /*
@@ -46,6 +46,6 @@ void repeated_key_xor(uint8_t key, const uint8_t *src, uint8_t *dest,
  *        precondition: length of src buffer >= len
  * @return best guess for the key that src has been repeat-key-encrypted with
  */
-uint8_t detect_repeated_key_xor(const uint8_t *src, size_t len);
+uint8_t detect_repeated_byte_xor(const uint8_t *src, size_t len);
 
 #endif  // ___xor_h___

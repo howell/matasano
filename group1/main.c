@@ -16,7 +16,7 @@ static void test_read_base64();
 static void test_base_16();
 static void test_base64();
 static void test_fixed_xor();
-static void test_break_repeat_key();
+static void test_break_repeat_byte();
 static void test_hamming_distance();
 
 
@@ -29,7 +29,7 @@ int main(void)
     test_read_base64();
     test_base_16();
     test_base64();
-    test_break_repeat_key();
+    test_break_repeat_byte();
     test_hamming_distance();
     return 0;
 }
@@ -176,13 +176,13 @@ static void test_fixed_xor()
 /*
  * Test breaking repeated key xor
  */
-static void test_break_repeat_key()
+static void test_break_repeat_byte()
 {
     char cipher_text[] = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
     uint8_t raw_cipher[(sizeof cipher_text - 1) / 2];
     read_base16(raw_cipher, cipher_text, strlen(cipher_text));
-    uint8_t key = detect_repeated_key_xor(raw_cipher, sizeof raw_cipher);
-    repeated_key_xor(key, raw_cipher, raw_cipher, sizeof raw_cipher);
+    uint8_t key = detect_repeated_byte_xor(raw_cipher, sizeof raw_cipher);
+    repeated_byte_xor(key, raw_cipher, raw_cipher, sizeof raw_cipher);
     assert(memcmp(raw_cipher, "Cooking MC's like a pound of bacon",
                 sizeof raw_cipher) == 0);
     printf("Passed repeat key xor test!\n");
