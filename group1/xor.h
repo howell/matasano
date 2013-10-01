@@ -61,4 +61,23 @@ void repeated_key_xor(const uint8_t *key, size_t key_size, const uint8_t *src,
  */
 uint8_t detect_repeated_byte_xor(const uint8_t *src, size_t len);
 
+/*
+ * Break cipher text that has been encrpyted with repeated-key xoring
+ * @param cipher_text
+ * @param len length of cipher text buffer
+ *        precondition: length of cipher text buffer >= len
+ * @param key buffer to output the key that is found for the ciphertext
+ * @param max_key_size maximum key length to search for
+ *        precondition: length of key buffer >= max_key_size
+ *        precondition: length of cipher_text >= 2 * max_key_size
+ * @return size of the found key
+ */
+size_t break_repeated_key_xor(const uint8_t *cipher_text, size_t len,
+        uint8_t *key, size_t max_key_size);
+
+/*
+ * Test the transpose function
+ */
+void test_transpose();
+
 #endif  // ___xor_h___
