@@ -76,6 +76,23 @@ size_t break_repeated_key_xor(const uint8_t *cipher_text, size_t len,
         uint8_t *key, size_t max_key_size);
 
 /*
+ * Transpose a buffer of equal-length blocks, making block N of the destination
+ * the N'th byte of each block of the source. The block size of the destination
+ * is then equal to the length of the source divided by blocks size, which must
+ * divide evenly
+ * @param dest buffer to write the destination to
+ * @param src buffer to transpose
+ * @param len length of the source and destination buffers
+ *        precondition: length of src and dest >= len
+ * @param rows the number of "rows" in the source buffer. Then the number of
+ *        "columns" will be len / rows. The transposed buffer will then have
+ *        "columns" rows of size "rows"
+ *        precondition: len % block_size == 0
+ */
+void transpose(uint8_t *dest, const uint8_t *src, size_t len,
+        size_t rows);
+
+/*
  * Test the transpose function
  */
 void test_transpose();

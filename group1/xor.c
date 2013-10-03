@@ -20,8 +20,6 @@
 #include "convert.h"
 
 // Private functions
-static void transpose(uint8_t *dest, const uint8_t *src, size_t len,
-        size_t block_size);
 
 /*
  * Compute the xor of two equal-length buffers
@@ -98,12 +96,11 @@ uint8_t detect_repeated_byte_xor(const uint8_t *src, size_t len)
 {
     if (!src)
         return 0;
-    char *decrypted = malloc(len);
-    if (!decrypted)
-        return 0;
+    char decrypted[len];
     size_t i;
     uint8_t best_guess = 0;
     double closest_diff = DBL_MAX;
+    struct letter_frequencies lfs;
     for (i = 0; i <= UINT8_MAX; ++i) {
         uint8_t key = i;
         repeated_byte_xor(key, src, (uint8_t *) decrypted, len);
@@ -111,11 +108,12 @@ uint8_t detect_repeated_byte_xor(const uint8_t *src, size_t len)
         calculate_letter_frequencies(decrypted, &freqs);
         double diff = compare_to_english(&freqs);
         if (diff < closest_diff) {
+            lfs = freqs;
             closest_diff = diff;
             best_guess = key;
         }
     }
-    free(decrypted);
+    print_frequencies(&lfs);
     return best_guess;
 }
 
@@ -156,25 +154,24 @@ size_t break_repeated_key_xor(const uint8_t *cipher_text, size_t len,
         }
     }
     printf("Likely key size = %lu\n", likely_key_size);
-    uint8_t *transposed = calloc(len, sizeof(uint8_t));
-    if (!transposed)
-        return 0;
-    transpose(transposed, cipher_text, len, likely_key_size);
+    uint8_t transposed[len];
     size_t block_size = len / likely_key_size;
+    transpose(transposed, cipher_text, len, block_size);
     size_t i;
-    for (i = 0; i < len / block_size; i++) {
-        size_t j;
-        for (j = 0; j < block_size; j++) {
-            printf("%lu, %lu\n", i, j);
-            assert(transposed[block_size * i + j] == cipher_text[block_size * j + i]);
-        }
-    }
     for (i = 0; i < likely_key_size; i++) {
         key[i] = detect_repeated_byte_xor(transposed + block_size * i,
                 block_size);
+        repeated_byte_xor(key[i], transposed + block_size * i, transposed + block_size * i, block_size);
         printf("key[%lu] = 0x%02x | %c\n", i, key[i], key[i]);
+        /*
+        size_t j;
+        for (j = 0; j < len; ++j)
+            printf("%c", transposed[j]);
+        */
     }
-    free(transposed);
+    //repeated_key_xor(key, likely_key_size, transposed, transposed, len);
+    //for (i = 0; i < len; ++i)
+        //printf("%c", transposed[i]);
     return likely_key_size;
 }
 
@@ -187,29 +184,26 @@ size_t break_repeated_key_xor(const uint8_t *cipher_text, size_t len,
  * @param src buffer to transpose
  * @param len length of the source and destination buffers
  *        precondition: length of src and dest >= len
- * @param block_size the size of the blocks in the source buffer to transpose;
- *        the transposed blocks in the destiantion will have size
- *        len / block_size
+ * @param rows the number of "rows" in the source buffer. Then the number of
+ *        "columns" will be len / rows. The transposed buffer will then have
+ *        "columns" rows of size "rows"
  *        precondition: len % block_size == 0
  */
-static void transpose(uint8_t *dest, const uint8_t *src, size_t len,
-        size_t block_size)
+void transpose(uint8_t *dest, const uint8_t *src, size_t len,
+        size_t rows)
 {
     if (!dest || !src)
         return;
 //    assert(len % block_size == 0);
-    size_t transp_block_size = len / block_size;
-    size_t transp_blocks = len / transp_block_size;
+    size_t src_cols = len / rows;
+
+    size_t transp_rows = src_cols;
+    size_t transp_cols = rows;
     size_t i;
-    for (i = 0; i < transp_blocks; i++) {
-        size_t transp_block_index = i * transp_block_size;
+    for (i = 0; i < transp_rows; i++) {
         size_t j;
-        for (j = 0; j < transp_block_size; ++j) {
-            if (transp_block_index + j < len) {
-                size_t src_block_index = j * block_size;
-                if (src_block_index + i < len)
-                    dest[transp_block_index + j] = src[src_block_index + i];
-            }
+        for (j = 0; j < transp_cols; ++j) {
+            dest[transp_cols * i + j] = src[src_cols * j + i];
         }
     }
 }
@@ -219,28 +213,40 @@ static void transpose(uint8_t *dest, const uint8_t *src, size_t len,
  */
 void test_transpose()
 {
-    size_t block_size = 3;
+    size_t rows = 3;
     const uint8_t test1[] = { 0x01, 0x02, 0x03,
                               0x04, 0x05, 0x06,
                               0x07, 0x08, 0x09 };
     uint8_t dest1[sizeof test1];
-    transpose(dest1, test1, sizeof test1, block_size);
+    transpose(dest1, test1, sizeof test1, rows);
     const uint8_t expected1[] = { 0x01, 0x04, 0x07,
                                   0x02, 0x05, 0x08,
                                   0x03, 0x06, 0x09 };
     assert(memcmp(dest1, expected1, sizeof dest1) == 0);
 
-    block_size = 4;
+    rows = 3;
     const uint8_t test2[] = { 0x01, 0x02, 0x03, 0xDE,
                               0x04, 0x05, 0x06, 0xAD,
                               0x07, 0x08, 0x09, 0x0B };
     uint8_t dest2[sizeof test2];
-    transpose(dest2, test2, sizeof test2, block_size);
+    transpose(dest2, test2, sizeof test2, rows);
     const uint8_t expected2[] = { 0x01, 0x04, 0x07,
                                   0x02, 0x05, 0x08,
                                   0x03, 0x06, 0x09,
                                   0xDE, 0xAD, 0x0B };
     assert(memcmp(dest2, expected2, sizeof dest2) == 0);
+
+    rows = 3;
+    const uint8_t test3[] = { 1,  2,  3, 4,
+                              5,  6,  7, 8,
+                              9, 10, 11, 12 };
+    uint8_t dest3[sizeof test3];
+    transpose(dest3, test3, sizeof test3, rows);
+    const uint8_t expected3[] = { 1, 5,  9,
+                                  2, 6, 10,
+                                  3, 7, 11,
+                                  4, 8, 12 };
+    assert(memcmp(dest3, expected3, sizeof dest3) == 0);
     printf("Transpose test passed!\n");
 }
 

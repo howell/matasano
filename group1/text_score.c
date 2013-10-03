@@ -52,15 +52,16 @@ static const size_t FREQS_LEN = sizeof english_languange.freqs /
  * Calculate the frequency of each letter in a string
  * @param src the string to evaluate
  * @param out pointer to letter_frequencies struct to write the output to
+ * @return the number of letters found in the string
  */
-void calculate_letter_frequencies(const char *src,
+uint32_t calculate_letter_frequencies(const char *src,
         struct letter_frequencies *out)
 {
     if (!src || !out)
-        return;
+        return 0;
     memset(out, 0, sizeof *out);
     size_t i = 0;
-    size_t letters = 0;
+    uint32_t letters = 0;
     while (src[i] != '\0') {
         char c = src[i];
         if (is_letter(c)) {
@@ -73,10 +74,10 @@ void calculate_letter_frequencies(const char *src,
         ++i;
     }
     // Normalize
-    if (letters == 0)
-        return;
-    for (i = 0; i < FREQS_LEN; ++i)
-        out->freqs[i] = (out->freqs[i]  * 100.0) / (double) letters;
+    if (letters != 0)
+        for (i = 0; i < FREQS_LEN; ++i)
+            out->freqs[i] = (out->freqs[i]  * 100.0) / (double) letters;
+    return letters;
 }
 
 /*
