@@ -14,6 +14,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #include "xor.h"
 #include "text_score.h"
@@ -99,22 +100,29 @@ uint8_t detect_repeated_byte_xor(const uint8_t *src, size_t len)
     char decrypted[len];
     size_t i;
     uint8_t best_guess = 0;
-    uint32_t closest_diff = UINT32_MAX;
+    double highest_score = DBL_MIN;
     struct letter_frequencies lfs;
     for (i = 0; i <= UINT8_MAX; ++i) {
+        if (!isprint(i))
+            continue;
         uint8_t key = i;
         repeated_byte_xor(key, src, (uint8_t *) decrypted, len);
         struct letter_frequencies freqs = { {0} };
         calculate_letter_frequencies(decrypted, &freqs);
-        uint32_t diff = compare_to_english(&freqs);
-        if (diff < closest_diff) {
+        double score = compare_to_english(&freqs);
+        if (key == 0x20 || key == 'b') {
+            printf("key = %c, score = %f\n", key, score);
+            print_frequencies(&lfs);
+        }
+        if (score > highest_score) {
             lfs = freqs;
-            closest_diff = diff;
+            highest_score = score;
             best_guess = key;
         }
     }
-    print_frequencies(&lfs);
-    printf("key = %02x | %c, score = %d\n", best_guess, best_guess, closest_diff);
+    //if (best_guess == 0x20)
+        //print_frequencies(&lfs);
+    //printf("key = %02x | %c, score = %d\n", best_guess, best_guess, closest_diff);
     return best_guess;
 }
 
@@ -138,15 +146,19 @@ size_t break_repeated_key_xor(const uint8_t *cipher_text, size_t len,
     size_t key_size;
     size_t likely_key_size = 0;
     uint32_t min_hamming = UINT32_MAX;
-    for (key_size = 2; key_size <= max_key_size; ++key_size) {
-        size_t i;
-        //uint32_t hamming = 0;
-        for (i = 0; i < 1; i++) {
-            //hamming += hamming_distance(cipher_text + (
+    for (key_size = 1; key_size <= max_key_size; ++key_size) {
+        /*
+        uint32_t hamming = 0;
+        for (size_t i = 0; i < 1; i++) {
+            hamming += hamming_distance(cipher_text + 2 * i * key_size,
+                    cipher_text + (2 * i + 1) * key_size, key_size);
         }
-        // TODO: possible need for more precision?
+        hamming = (hamming * 100 / 2) / key_size;
+        */
         uint32_t hamming = 100 * hamming_distance(cipher_text, cipher_text + key_size,
                 key_size) / key_size;
+        if (key_size == 29)
+            printf("29 -> %d\n", hamming);
         //printf("hamming for key size %lu = %d\n", key_size, hamming);
         if (hamming < min_hamming) {
             min_hamming = hamming;
@@ -155,20 +167,40 @@ size_t break_repeated_key_xor(const uint8_t *cipher_text, size_t len,
         }
     }
     printf("Likely key size = %lu\n", likely_key_size);
+    likely_key_size = 29;
     uint8_t transposed[len];
     size_t block_size = len / likely_key_size;
     transpose(transposed, cipher_text, len, block_size);
-    size_t i;
-    for (i = 0; i < likely_key_size; i++) {
-        key[i] = detect_repeated_byte_xor(transposed + block_size * i,
+    size_t j;
+    for (j = 0; j < likely_key_size; j++) {
+        key[j] = detect_repeated_byte_xor(transposed + block_size * j,
                 block_size);
-        repeated_byte_xor(key[i], transposed + block_size * i, transposed + block_size * i, block_size);
-        printf("key[%lu] = 0x%02x | %c\n", i, key[i], key[i]);
+        if (j == 14)
+            print_base16(transposed + block_size * j, block_size);
+        //repeated_byte_xor(key[j], transposed + block_size * j, transposed + block_size * j, block_size);
+        if (likely_key_size == 29)
+            printf("key[%lu] = 0x%02x | %c\n", j, key[j], key[j]);
         /*
-        size_t j;
-        for (j = 0; j < len; ++j)
-            printf("%c", transposed[j]);
-        */
+           if (i == 0)
+           for (size_t j = 0; j < len; ++j)
+           printf("%c", transposed[j]);
+           */
+    }
+    uint8_t plain_text[len + 1];
+    repeated_key_xor(key, likely_key_size, cipher_text, plain_text, len);
+    plain_text[len] = '\0';
+    //printf("stlen(plain_text) = %d\n", strlen(plain_text));
+    //if (strlen(plain_text) < len / 2)
+    //continue;
+    if (likely_key_size == 29) {
+        printf("Plain text for key size = %lu\n", likely_key_size);
+        for (size_t j = 0; j < len; ++j)
+            printf("%c", plain_text[j]);
+        printf("\n");
+        struct letter_frequencies lfs;
+        calculate_letter_frequencies((char *) plain_text, &lfs);
+        uint32_t score = compare_to_english(&lfs);
+        printf("Letter frequency score = %d\n", score);
     }
     //repeated_key_xor(key, likely_key_size, transposed, transposed, len);
     //for (i = 0; i < len; ++i)

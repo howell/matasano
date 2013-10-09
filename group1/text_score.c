@@ -14,36 +14,38 @@ uint32_t diff_frequencies(const struct letter_frequencies *src1,
 static uint32_t absolute_difference(uint32_t x, uint32_t y);
 static uint32_t differing_bits(uint8_t x, uint8_t y);
 static int qsort_comp(const void *p1, const void *p2);
+static double dot_product(const struct letter_frequencies *a,
+        const struct letter_frequencies *b);
 
 const static struct letter_frequencies english_language = {
     .freqs = {
-        633,    // a
-        138,    // b
-        208,    // c
-        339,    // d
-        1056,   // e
-        183,    // f
-        154,    // g
-        513,    // h
-        577,    // i
-        14,     // j
-        49,     // k
-        327,    // l
-        224,    // m
-        574,    // n
-        613,    // o
-        128,    // p
-        9,      // q
-        496,    // r
-        502,    // s
-        714,    // t
-        230,    // u
-        86,     // v
-        186,    // w
-        12,     // x
-        193,    // y
-        13,     // z
-        1814    //  ' '
+        6.33,    // a
+        1.38,    // b
+        2.08,    // c
+        3.39,    // d
+        10.56,   // e
+        1.83,    // f
+        1.54,    // g
+        5.13,    // h
+        5.77,    // i
+        0.14,    // j
+        0.49,    // k
+        3.27,    // l
+        2.24,    // m
+        5.74,    // n
+        6.13,    // o
+        1.28,    // p
+        0.9,     // q
+        4.96,    // r
+        5.02,    // s
+        7.14,    // t
+        2.30,    // u
+        0.86,    // v
+        1.86,    // w
+        0.12,    // x
+        1.93,    // y
+        0.13,    // z
+        18.14    //  ' '
     }
 };
 
@@ -68,7 +70,7 @@ uint32_t calculate_letter_frequencies(const char *src,
         char c = src[i];
         if (isalpha(c)) {
             c = tolower(c);
-            uint32_t index = c - 'a';
+            size_t index = c - 'a';
             assert(index < FREQS_LEN);
             out->freqs[index] += 1;
             ++letters;
@@ -79,9 +81,9 @@ uint32_t calculate_letter_frequencies(const char *src,
         ++i;
     }
     // Normalize
-    if (letters != 0)
-        for (i = 0; i < FREQS_LEN; ++i)
-            out->freqs[i] = (out->freqs[i]  * LF_FP_BASE * 100) / letters;
+    if (i != 0)
+        for (size_t j = 0; j < FREQS_LEN; ++j)
+            out->freqs[j] = (out->freqs[j]  * 100.0) / (double) i;
     return letters;
 }
 
@@ -89,15 +91,14 @@ uint32_t calculate_letter_frequencies(const char *src,
  * Calculate the difference in letter frequencies between a given distribution
  * and the english language
  * @param src pointer to letter frequencies to compare
- * @return absolute difference in frequencies between source and the english
- *         language, the sum of the absolute differences in the frequency of
- *         each letter
+ * @return a score representing a frequency distribution's similarity to the
+ *         english language, where a higher score represents a closer match.
  */
-uint32_t compare_to_english(const struct letter_frequencies *src)
+double compare_to_english(const struct letter_frequencies *src)
 {
     if (!src)
-        return UINT32_MAX;
-    return diff_frequencies(src, &english_language);
+        return 0;
+    return dot_product(src, &english_language);
 }
 
 /*
@@ -109,9 +110,26 @@ void print_frequencies(const struct letter_frequencies *src)
     if (!src)
         return;
     size_t i;
-    for (i = 0; i < FREQS_LEN; ++i)
-        printf("%c : %0d.%02d%%\n", 'a' + (char) i, src->freqs[i] / LF_FP_BASE,
-                src->freqs[i] % LF_FP_BASE);
+    for (i = 0; i < FREQS_LEN; ++i) {
+        char current;
+        if (i == LF_SPACE_INDEX)
+            current = ' ';
+        else
+            current = 'a' + (char) i;
+        printf("%c : %.2f%%\n", current, src->freqs[i]);
+    }
+}
+
+/*
+ * Take the dot product of two frequency distributions
+ */
+static double dot_product(const struct letter_frequencies *a,
+        const struct letter_frequencies *b)
+{
+    double dot_product = 0;
+    for (size_t i = 0; i < FREQS_LEN; ++i)
+        dot_product += (a->freqs[i] * b->freqs[i]);
+    return dot_product;
 }
 
 /*

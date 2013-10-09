@@ -34,8 +34,8 @@ def output_char_freqs(char_freqs):
   total_characters = sum(char_freqs.values())
   with open("char_freqs.txt", 'w') as f:
     for c in sorted(char_freqs.iterkeys()):
-      freq = (char_freqs[c] * 10000) / total_characters
-      f.write("{} = {}\n".format(c, freq))
+      freq = (char_freqs[c] * 100.0) / total_characters
+      f.write("{} = {:.02f}\n".format(c, freq))
   return
 
 def main():
