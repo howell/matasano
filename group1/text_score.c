@@ -3,52 +3,52 @@
 #include <float.h>
 #include <assert.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 
 #include "text_score.h"
 
 // private functions
-static uint32_t is_letter(char c);
-static char downcase(char c);
 uint32_t diff_frequencies(const struct letter_frequencies *src1,
         const struct letter_frequencies *src2);
 static uint32_t absolute_difference(uint32_t x, uint32_t y);
 static uint32_t differing_bits(uint8_t x, uint8_t y);
 static int qsort_comp(const void *p1, const void *p2);
 
-const static struct letter_frequencies english_languange = {
+const static struct letter_frequencies english_language = {
     .freqs = {
-        774,   // a
-        170,   // b
-        255,   // c
-        414,   // d
-        1290,  // e
-        224,   // f
-        189,   // g
-        627,   // h
-        706,   // i
-        18,    // j
-        61,    // k
-        400,   // l
-        274,   // m
-        702,   // n
-        750,   // o
-        157,   // p
-        12,    // q
-        607,   // r
-        614,   // s
-        873,   // t
-        281,   // u
-        106,   // v
-        228,   // w
-        16,    // x
-        236,   // y
-        17     // z
+        633,    // a
+        138,    // b
+        208,    // c
+        339,    // d
+        1056,   // e
+        183,    // f
+        154,    // g
+        513,    // h
+        577,    // i
+        14,     // j
+        49,     // k
+        327,    // l
+        224,    // m
+        574,    // n
+        613,    // o
+        128,    // p
+        9,      // q
+        496,    // r
+        502,    // s
+        714,    // t
+        230,    // u
+        86,     // v
+        186,    // w
+        12,     // x
+        193,    // y
+        13,     // z
+        1814    //  ' '
     }
 };
 
-static const size_t FREQS_LEN = sizeof english_languange.freqs /
-    sizeof english_languange.freqs[0];
+static const size_t FREQS_LEN = sizeof english_language.freqs /
+    sizeof english_language.freqs[0];
 
 /*
  * Calculate the frequency of each letter in a string
@@ -66,11 +66,14 @@ uint32_t calculate_letter_frequencies(const char *src,
     uint32_t letters = 0;
     while (src[i] != '\0') {
         char c = src[i];
-        if (is_letter(c)) {
-            c = downcase(c);
+        if (isalpha(c)) {
+            c = tolower(c);
             uint32_t index = c - 'a';
             assert(index < FREQS_LEN);
             out->freqs[index] += 1;
+            ++letters;
+        } else if (c == ' ') {
+            out->freqs[LF_SPACE_INDEX] += 1;
             ++letters;
         }
         ++i;
@@ -94,7 +97,7 @@ uint32_t compare_to_english(const struct letter_frequencies *src)
 {
     if (!src)
         return UINT32_MAX;
-    return diff_frequencies(src, &english_languange);
+    return diff_frequencies(src, &english_language);
 }
 
 /*
@@ -179,31 +182,6 @@ static uint32_t absolute_difference(uint32_t x, uint32_t y)
     if (x > y)
         return x - y;
     return y - x;
-}
-
-/*
- * Check if a character is a letter, e.g. in the range a-zA-Z
- * @return 1 if true, 0 otherwise
- */
-static uint32_t is_letter(char c)
-{
-    if ((c >= 'a') && (c <= 'z'))
-        return 1;
-    if ((c >= 'A') && (c <= 'Z'))
-        return 1;
-    return 0;
-}
-
-/*
- * Returns the lowercase version of a letter. If it is uppercase, conver it to
- * lower case; otherwise, return unchanged
- * @return lowercase version of the letter
- */
-static char downcase(char c)
-{
-    if ((c >= 'A') && (c <= 'Z'))
-        return c - 'A' + 'a';
-    return c;
 }
 
 /*
