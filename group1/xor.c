@@ -99,14 +99,14 @@ uint8_t detect_repeated_byte_xor(const uint8_t *src, size_t len)
     char decrypted[len];
     size_t i;
     uint8_t best_guess = 0;
-    double closest_diff = DBL_MAX;
+    uint32_t closest_diff = UINT32_MAX;
     struct letter_frequencies lfs;
     for (i = 0; i <= UINT8_MAX; ++i) {
         uint8_t key = i;
         repeated_byte_xor(key, src, (uint8_t *) decrypted, len);
         struct letter_frequencies freqs = { {0} };
         calculate_letter_frequencies(decrypted, &freqs);
-        double diff = compare_to_english(&freqs);
+        uint32_t diff = compare_to_english(&freqs);
         if (diff < closest_diff) {
             lfs = freqs;
             closest_diff = diff;
@@ -114,6 +114,7 @@ uint8_t detect_repeated_byte_xor(const uint8_t *src, size_t len)
         }
     }
     print_frequencies(&lfs);
+    printf("key = %02x | %c, score = %d\n", best_guess, best_guess, closest_diff);
     return best_guess;
 }
 

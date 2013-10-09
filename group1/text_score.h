@@ -7,9 +7,11 @@
 
 // Type to represent a set of letter frequencies.
 struct letter_frequencies {
-    double freqs[26]; // store the frequency of each letter, with 'a' at index
+    uint32_t freqs[26]; // store the frequency of each letter, with 'a' at index
                         // 0, 'b' at index 1, ..., and 'z' at index 25
+                        // as a fixed point number with base LF_FP_BASE
 };
+#define LF_FP_BASE 100
 
 
 /*
@@ -28,7 +30,7 @@ uint32_t calculate_letter_frequencies(const char *src,
  *         language, the sum of the absolute differences in the frequency of
  *         each letter
  */
-double compare_to_english(const struct letter_frequencies *src);
+uint32_t compare_to_english(const struct letter_frequencies *src);
 
 /*
  * Print a letter frequency struct

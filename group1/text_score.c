@@ -3,45 +3,47 @@
 #include <float.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "text_score.h"
 
 // private functions
 static uint32_t is_letter(char c);
 static char downcase(char c);
-double diff_frequencies(const struct letter_frequencies *src1,
+uint32_t diff_frequencies(const struct letter_frequencies *src1,
         const struct letter_frequencies *src2);
-static double absolute_difference(double x, double y);
+static uint32_t absolute_difference(uint32_t x, uint32_t y);
 static uint32_t differing_bits(uint8_t x, uint8_t y);
+static int qsort_comp(const void *p1, const void *p2);
 
 const static struct letter_frequencies english_languange = {
     .freqs = {
-        7.74,   // a
-        1.70,   // b
-        2.55,   // c
-        4.14,   // d
-        12.90,  // e
-        2.24,   // f
-        1.89,   // g
-        6.27,   // h
-        7.06,   // i
-        0.18,   // j
-        0.61,   // k
-        4.00,   // l
-        2.74,   // m
-        7.02,   // n
-        7.50,   // o
-        1.57,   // p
-        0.12,   // q
-        6.07,   // r
-        6.14,   // s
-        8.73,   // t
-        2.81,   // u
-        1.06,   // v
-        2.28,   // w
-        0.16,   // x
-        2.36,   // y
-        0.17    // z
+        774,   // a
+        170,   // b
+        255,   // c
+        414,   // d
+        1290,  // e
+        224,   // f
+        189,   // g
+        627,   // h
+        706,   // i
+        18,    // j
+        61,    // k
+        400,   // l
+        274,   // m
+        702,   // n
+        750,   // o
+        157,   // p
+        12,    // q
+        607,   // r
+        614,   // s
+        873,   // t
+        281,   // u
+        106,   // v
+        228,   // w
+        16,    // x
+        236,   // y
+        17     // z
     }
 };
 
@@ -76,7 +78,7 @@ uint32_t calculate_letter_frequencies(const char *src,
     // Normalize
     if (letters != 0)
         for (i = 0; i < FREQS_LEN; ++i)
-            out->freqs[i] = (out->freqs[i]  * 100.0) / (double) letters;
+            out->freqs[i] = (out->freqs[i]  * LF_FP_BASE * 100) / letters;
     return letters;
 }
 
@@ -88,10 +90,10 @@ uint32_t calculate_letter_frequencies(const char *src,
  *         language, the sum of the absolute differences in the frequency of
  *         each letter
  */
-double compare_to_english(const struct letter_frequencies *src)
+uint32_t compare_to_english(const struct letter_frequencies *src)
 {
     if (!src)
-        return DBL_MAX;
+        return UINT32_MAX;
     return diff_frequencies(src, &english_languange);
 }
 
@@ -105,7 +107,8 @@ void print_frequencies(const struct letter_frequencies *src)
         return;
     size_t i;
     for (i = 0; i < FREQS_LEN; ++i)
-        printf("%c : %.2f%%\n", 'a' + (char) i, src->freqs[i]);
+        printf("%c : %0d.%02d%%\n", 'a' + (char) i, src->freqs[i] / LF_FP_BASE,
+                src->freqs[i] % LF_FP_BASE);
 }
 
 /*
@@ -116,12 +119,12 @@ void print_frequencies(const struct letter_frequencies *src)
  * @return absolute difference in frequencies between src1 and src2, e.g.
  *         the sum of the absolute differences in the frequency of each letter
  */
-double diff_frequencies(const struct letter_frequencies *src1,
+uint32_t diff_frequencies(const struct letter_frequencies *src1,
         const struct letter_frequencies *src2)
 {
     if (!src1 || !src2)
-        return DBL_MAX;
-    double difference = 0;
+        return UINT32_MAX;
+    uint32_t difference = 0;
     size_t i;
     for(i = 0; i < FREQS_LEN; ++i)
         difference += absolute_difference(src1->freqs[i], src2->freqs[i]);
@@ -129,12 +132,49 @@ double diff_frequencies(const struct letter_frequencies *src1,
 }
 
 /*
- * Return the absolute difference between two doubles
+ *
+ */
+uint32_t sorted_diff(const struct letter_frequencies *src,
+        const struct letter_frequencies *to)
+{
+    struct letter_frequencies src_sorted, to_sorted;
+    memcpy(&src_sorted, src, sizeof src_sorted);
+    memcpy(&to_sorted, to, sizeof to_sorted);
+    qsort(src_sorted.freqs, FREQS_LEN, sizeof src_sorted.freqs[0], qsort_comp);
+    qsort(to_sorted.freqs, FREQS_LEN, sizeof to_sorted.freqs[0], qsort_comp);
+    uint32_t score = 0;
+    for (size_t i = 0; i < FREQS_LEN; ++i) {
+
+    }
+    return score;
+}
+
+/*
+ * Comparator function for stdlib qsort function for letter frequencies.
+ * Currently letter frequencies are uint32_t's
+ * Sort in descending order
+ * @return < 0 if *p1 goes before *p2
+ *          0  if *p1 is equivalent to *p2
+ *         > 0 if *p1 goes after *p2
+ */
+static int qsort_comp(const void *p1, const void *p2)
+{
+    const uint32_t *a = p1;
+    const uint32_t *b = p2;
+    if (*a > *b)
+        return -1;
+    if (*a < *b)
+        return 1;
+    return 0;
+}
+
+/*
+ * Return the absolute difference between two uint32_t
  * @param x
  * @param y
  * @return |x - y|
  */
-static double absolute_difference(double x, double y)
+static uint32_t absolute_difference(uint32_t x, uint32_t y)
 {
     if (x > y)
         return x - y;

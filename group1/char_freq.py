@@ -16,6 +16,11 @@ def add_string_char_freqs(s, char_freqs):
         char_freqs[char] += 1
       else:
         char_freqs[char] = 1
+    elif char == ' ':
+      if ' ' in char_freqs:
+        char_freqs[' '] += 1
+      else:
+        char_freqs[' '] = 1
 
 def add_file_char_freqs(file_name, char_freqs):
   """Count the number of occurences of each character in a file and add them
@@ -29,8 +34,8 @@ def output_char_freqs(char_freqs):
   total_characters = sum(char_freqs.values())
   with open("char_freqs.txt", 'w') as f:
     for c in sorted(char_freqs.iterkeys()):
-      freq = (char_freqs[c] * 100.0) / total_characters
-      f.write("{} = {:.02f}\n".format(c, freq))
+      freq = (char_freqs[c] * 10000) / total_characters
+      f.write("{} = {}\n".format(c, freq))
   return
 
 def main():
