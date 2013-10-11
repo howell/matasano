@@ -334,8 +334,9 @@ static void test_break_repeat_key()
     size_t unpadded = read_base64(raw_ct, cipher_text64, strlen(cipher_text64));
     uint8_t key[40];
     size_t key_size = break_repeated_key_xor(raw_ct, unpadded, key, 40);
-    const char expected[] = "I'm back and I'm ringin' the bell";
     assert(key_size == 29);
+    assert(strncmp((char*)key,"Terminator X: Bring the noise", key_size) == 0);
+    const char expected[] = "I'm back and I'm ringin' the bell";
     repeated_key_xor(key, key_size, raw_ct, raw_ct, unpadded);
     assert(strncmp((char *) raw_ct, expected, sizeof expected - 1) == 0);
     printf("Break repeat key xor test passed!\n");
