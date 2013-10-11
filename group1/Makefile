@@ -1,6 +1,6 @@
 CC=clang
 CLANGFLAGS=-x c -Wall -Wextra -std=c99 -g -O2
-GCCFLAGS=-Wall -fstrict-aliasing -Wstrict-aliasing -g -O2
+GCCFLAGS=-Wall -fstrict-aliasing -Wstrict-aliasing -std=c99 -g -O2
 
 SRCS=main.c \
 	 convert.c convert.h \
