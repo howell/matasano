@@ -9,11 +9,7 @@
 #include "text_score.h"
 
 // private functions
-uint32_t diff_frequencies(const struct letter_frequencies *src1,
-        const struct letter_frequencies *src2);
-static uint32_t absolute_difference(uint32_t x, uint32_t y);
 static uint32_t differing_bits(uint8_t x, uint8_t y);
-static int qsort_comp(const void *p1, const void *p2);
 static double dot_product(const struct letter_frequencies *a,
         const struct letter_frequencies *b);
 
@@ -65,7 +61,6 @@ void calculate_letter_frequencies(const char *src, size_t len,
     if (!src || !out)
         return;
     memset(out, 0, sizeof *out);
-    uint32_t letters = 0;
     for(size_t i = 0; i < len; ++i) {
         char c = src[i];
         if (isalpha(c)) {
@@ -73,12 +68,9 @@ void calculate_letter_frequencies(const char *src, size_t len,
             size_t index = c - 'a';
             assert(index < FREQS_LEN);
             out->freqs[index] += 1;
-            ++letters;
         } else if (c == ' ') {
             out->freqs[LF_SPACE_INDEX] += 1;
-            ++letters;
         }
-        ++i;
     }
     // Normalize
     if (len != 0)
@@ -96,7 +88,7 @@ void calculate_letter_frequencies(const char *src, size_t len,
 double compare_to_english(const struct letter_frequencies *src)
 {
     if (!src)
-        return 0;
+        return DBL_MIN;
     return dot_product(src, &english_language);
 }
 
@@ -129,76 +121,6 @@ static double dot_product(const struct letter_frequencies *a,
     for (size_t i = 0; i < FREQS_LEN; ++i)
         dot_product += (a->freqs[i] * b->freqs[i]);
     return dot_product;
-}
-
-/*
- * Calculate the absolute difference in letter frequencies between two
- * distributions
- * @param src1 one of the letter frequencies to compare
- * @param src2 second letter frequencies to compare
- * @return absolute difference in frequencies between src1 and src2, e.g.
- *         the sum of the absolute differences in the frequency of each letter
- */
-uint32_t diff_frequencies(const struct letter_frequencies *src1,
-        const struct letter_frequencies *src2)
-{
-    if (!src1 || !src2)
-        return UINT32_MAX;
-    uint32_t difference = 0;
-    size_t i;
-    for(i = 0; i < FREQS_LEN; ++i)
-        difference += absolute_difference(src1->freqs[i], src2->freqs[i]);
-    return difference;
-}
-
-/*
- *
- */
-uint32_t sorted_diff(const struct letter_frequencies *src,
-        const struct letter_frequencies *to)
-{
-    struct letter_frequencies src_sorted, to_sorted;
-    memcpy(&src_sorted, src, sizeof src_sorted);
-    memcpy(&to_sorted, to, sizeof to_sorted);
-    qsort(src_sorted.freqs, FREQS_LEN, sizeof src_sorted.freqs[0], qsort_comp);
-    qsort(to_sorted.freqs, FREQS_LEN, sizeof to_sorted.freqs[0], qsort_comp);
-    uint32_t score = 0;
-    for (size_t i = 0; i < FREQS_LEN; ++i) {
-
-    }
-    return score;
-}
-
-/*
- * Comparator function for stdlib qsort function for letter frequencies.
- * Currently letter frequencies are uint32_t's
- * Sort in descending order
- * @return < 0 if *p1 goes before *p2
- *          0  if *p1 is equivalent to *p2
- *         > 0 if *p1 goes after *p2
- */
-static int qsort_comp(const void *p1, const void *p2)
-{
-    const uint32_t *a = p1;
-    const uint32_t *b = p2;
-    if (*a > *b)
-        return -1;
-    if (*a < *b)
-        return 1;
-    return 0;
-}
-
-/*
- * Return the absolute difference between two uint32_t
- * @param x
- * @param y
- * @return |x - y|
- */
-static uint32_t absolute_difference(uint32_t x, uint32_t y)
-{
-    if (x > y)
-        return x - y;
-    return y - x;
 }
 
 /*

@@ -7,12 +7,10 @@
 
 // Type to represent a set of letter frequencies.
 struct letter_frequencies {
-    double freqs[27]; // store the frequency of each letter, with 'a' at index
+    double freqs[27];   // store the frequency of each letter, with 'a' at index
                         // 0, 'b' at index 1, ..., and 'z' at index 25, and
                         // space at index 26.
-                        // as a fixed point number with base LF_FP_BASE
 };
-#define LF_FP_BASE 100
 #define LF_SPACE_INDEX 26
 
 

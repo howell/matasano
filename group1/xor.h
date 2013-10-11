@@ -92,9 +92,4 @@ size_t break_repeated_key_xor(const uint8_t *cipher_text, size_t len,
 void transpose(uint8_t *dest, const uint8_t *src, size_t len,
         size_t rows);
 
-/*
- * Test the transpose function
- */
-void test_transpose();
-
 #endif  // ___xor_h___

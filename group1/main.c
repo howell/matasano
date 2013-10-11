@@ -20,6 +20,7 @@ static void test_break_repeat_byte();
 static void test_hamming_distance();
 static void test_repeat_key_xor();
 static void test_break_repeat_key();
+static void test_transpose();
 
 int main(void)
 {
@@ -231,7 +232,49 @@ static void test_repeat_key_xor()
 }
 
 /*
- * Test the function that tries to break repeat key xor encryption
+ * Test the transpose function
+ */
+static void test_transpose()
+{
+    size_t rows = 3;
+    const uint8_t test1[] = { 0x01, 0x02, 0x03,
+                              0x04, 0x05, 0x06,
+                              0x07, 0x08, 0x09 };
+    uint8_t dest1[sizeof test1];
+    transpose(dest1, test1, sizeof test1, rows);
+    const uint8_t expected1[] = { 0x01, 0x04, 0x07,
+                                  0x02, 0x05, 0x08,
+                                  0x03, 0x06, 0x09 };
+    assert(memcmp(dest1, expected1, sizeof dest1) == 0);
+
+    rows = 3;
+    const uint8_t test2[] = { 0x01, 0x02, 0x03, 0xDE,
+                              0x04, 0x05, 0x06, 0xAD,
+                              0x07, 0x08, 0x09, 0x0B };
+    uint8_t dest2[sizeof test2];
+    transpose(dest2, test2, sizeof test2, rows);
+    const uint8_t expected2[] = { 0x01, 0x04, 0x07,
+                                  0x02, 0x05, 0x08,
+                                  0x03, 0x06, 0x09,
+                                  0xDE, 0xAD, 0x0B };
+    assert(memcmp(dest2, expected2, sizeof dest2) == 0);
+
+    rows = 3;
+    const uint8_t test3[] = { 1,  2,  3, 4,
+                              5,  6,  7, 8,
+                              9, 10, 11, 12 };
+    uint8_t dest3[sizeof test3];
+    transpose(dest3, test3, sizeof test3, rows);
+    const uint8_t expected3[] = { 1, 5,  9,
+                                  2, 6, 10,
+                                  3, 7, 11,
+                                  4, 8, 12 };
+    assert(memcmp(dest3, expected3, sizeof dest3) == 0);
+    printf("Transpose test passed!\n");
+}
+
+/*
+ * Test the function that breaks repeat key xor encryption
  */
 const char cipher_text64[] = "HUIfTQsPAh9PE048GmllH0kcDk4TAQsHThsBFkU2AB4BSWQgV"
 "B0dQzNTTmVSBgBHVBwNRU0HBAxTEjwMHghJGgkRTxRMIRpHKwAFHUdZEQQJAGQmB1MANxYGDBoXQR0"
@@ -285,40 +328,14 @@ const char cipher_text64[] = "HUIfTQsPAh9PE048GmllH0kcDk4TAQsHThsBFkU2AB4BSWQgV"
 "QIEC0EbAVIqCFZBO1IdBgZUVA4QTgUWSR4QJwwRTWM=";
 static void test_break_repeat_key()
 {
-    /*
-    const char plain_text[] = "What a fantastic test for the repeat key xor test! I can't wait to see what the result will be. I really hope it's correct. There are a few things I can think to try differently, but none of them seem super promising.";
-    uint8_t cipher_text[sizeof plain_text - 1];
-    const uint8_t k[] = {'L', 'O', 'L', 'a'};
-    //const uint8_t k[] = {'Q', 'W', 'E', 'R', 'T', 'Y'};
-    repeated_key_xor(k, sizeof k, plain_text, cipher_text, sizeof cipher_text);
-    uint8_t f[40] = {0};
-    size_t s = break_repeated_key_xor(cipher_text, sizeof cipher_text, f, 10);
-    repeated_key_xor(f, s, cipher_text, cipher_text, sizeof cipher_text);
-    for (size_t i = 0; i < sizeof cipher_text; ++i)
-        printf("%c", cipher_text[i]);
-    printf("\n");
-    */
     uint8_t raw_ct[(3 * (sizeof cipher_text64 - 1)) / 4];
     size_t unpadded = read_base64(raw_ct, cipher_text64, strlen(cipher_text64));
-    //print_base16(raw_ct, unpadded);
     uint8_t key[40];
     size_t key_size = break_repeated_key_xor(raw_ct, unpadded, key, 40);
-    printf("Key size = %lu\n", key_size);
-    /*
-    const uint8_t test_key[] = "Terminator X: Bring tHe noiSe";
-    repeated_key_xor(test_key, strlen(test_key), raw_ct, raw_ct, unpadded);
-    for (size_t i = 0; i < unpadded; ++i)
-        printf("%c", raw_ct[i] ? raw_ct[i] : ' ');
-    printf("\n");
-    */
-    printf("Break repeat key xor test passed?\n");
-    /*
-    uint8_t blk1[] = { 0x0b, 0x36, 0x37 };
-    uint8_t blk2[] = { 0x27, 0x2a, 0x2b };
-    printf("test hamming = %d\n", hamming_distance(blk1, blk2, sizeof blk1));
-    const char cipher_text[] = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f";
-    uint8_t raw_ct[(sizeof cipher_text - 1) / 2];
-    read_base16(raw_ct, cipher_text, strlen(cipher_text));
-    */
+    const char expected[] = "I'm back and I'm ringin' the bell";
+    assert(key_size == 29);
+    repeated_key_xor(key, key_size, raw_ct, raw_ct, unpadded);
+    assert(strncmp((char *) raw_ct, expected, sizeof expected - 1) == 0);
+    printf("Break repeat key xor test passed!\n");
 }
 
