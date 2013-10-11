@@ -108,12 +108,12 @@ uint8_t detect_repeated_byte_xor(const uint8_t *src, size_t len)
         uint8_t key = i;
         repeated_byte_xor(key, src, (uint8_t *) decrypted, len);
         struct letter_frequencies freqs = { {0} };
-        calculate_letter_frequencies(decrypted, &freqs);
+        calculate_letter_frequencies(decrypted, len, &freqs);
         double score = compare_to_english(&freqs);
-        if (key == 0x20 || key == 'b') {
-            printf("key = %c, score = %f\n", key, score);
-            print_frequencies(&lfs);
-        }
+        //if (key == 0x20 || key == 'b') {
+            //printf("key = %c, score = %f\n", key, score);
+            //print_frequencies(&lfs);
+        //}
         if (score > highest_score) {
             lfs = freqs;
             highest_score = score;
@@ -175,36 +175,22 @@ size_t break_repeated_key_xor(const uint8_t *cipher_text, size_t len,
     for (j = 0; j < likely_key_size; j++) {
         key[j] = detect_repeated_byte_xor(transposed + block_size * j,
                 block_size);
-        if (j == 14)
-            print_base16(transposed + block_size * j, block_size);
-        //repeated_byte_xor(key[j], transposed + block_size * j, transposed + block_size * j, block_size);
         if (likely_key_size == 29)
             printf("key[%lu] = 0x%02x | %c\n", j, key[j], key[j]);
-        /*
-           if (i == 0)
-           for (size_t j = 0; j < len; ++j)
-           printf("%c", transposed[j]);
-           */
     }
     uint8_t plain_text[len + 1];
     repeated_key_xor(key, likely_key_size, cipher_text, plain_text, len);
     plain_text[len] = '\0';
-    //printf("stlen(plain_text) = %d\n", strlen(plain_text));
-    //if (strlen(plain_text) < len / 2)
-    //continue;
     if (likely_key_size == 29) {
         printf("Plain text for key size = %lu\n", likely_key_size);
         for (size_t j = 0; j < len; ++j)
             printf("%c", plain_text[j]);
         printf("\n");
         struct letter_frequencies lfs;
-        calculate_letter_frequencies((char *) plain_text, &lfs);
+        calculate_letter_frequencies((char *) plain_text, len, &lfs);
         uint32_t score = compare_to_english(&lfs);
         printf("Letter frequency score = %d\n", score);
     }
-    //repeated_key_xor(key, likely_key_size, transposed, transposed, len);
-    //for (i = 0; i < len; ++i)
-        //printf("%c", transposed[i]);
     return likely_key_size;
 }
 

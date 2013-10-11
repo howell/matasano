@@ -30,7 +30,7 @@ int main(void)
     test_read_base64();
     test_base_16();
     test_base64();
-    //test_break_repeat_byte();
+    test_break_repeat_byte();
     test_hamming_distance();
     test_repeat_key_xor();
     test_transpose();
@@ -320,9 +320,5 @@ static void test_break_repeat_key()
     uint8_t raw_ct[(sizeof cipher_text - 1) / 2];
     read_base16(raw_ct, cipher_text, strlen(cipher_text));
     */
-    const char block14[] = "65652b206248622765362b2f62622a263b621665276230272e2d112b2d21312b2a62486262652e23302a2b2027263b27372921656529232e253b27052062360b360b27272d35626211316248272b272c6230271125362d362d6237362c296e2b362d3b";
-    uint8_t raw_block14[(sizeof block14 - 1) / 2];
-    uint8_t k = detect_repeated_byte_xor(raw_block14, sizeof raw_block14);
-    printf("%c\n", k);
 }
 

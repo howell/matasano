@@ -20,9 +20,10 @@ struct letter_frequencies {
  * Calculate the frequency of each letter in a string
  * @param src the string to evaluate
  * @param out pointer to letter_frequencies struct to write the output to
- * @return the number of letters found in the string
+ * @param len number of bytes to check (allows for src to contain nul chars)
+ *        precondition: length of src buffer >= len
  */
-uint32_t calculate_letter_frequencies(const char *src,
+void calculate_letter_frequencies(const char *src, size_t len,
         struct letter_frequencies *out);
 /*
  * Calculate the difference in letter frequencies between a given distribution
