@@ -5,8 +5,9 @@
  *  1) Fixed xor
  *  2) Single-character xor cipher
  *  3) Detecting single-character xor
- *  4) Repeating-key xor cipher
- *  5) Braking a repeating-key xor cipher
+ *  4) Finding which string out of many has been single-character xor'd
+ *  5) Repeating-key xor cipher
+ *  6) Braking a repeating-key xor cipher
  */
 
 #include <stdlib.h>
@@ -116,6 +117,37 @@ uint8_t detect_repeated_byte_xor(const uint8_t *src, size_t len)
         }
     }
     return best_guess;
+}
+
+/*
+ * Take an array of strings and return the one that is most likely to have
+ * been encrpyted with repeated-byte xor
+ * @param candidadtes array of pointers to strings
+ * @param num number of candidates
+ *        precondition: num >= length of candidates array
+ * @return pointer to candidate most likely to have been repeated-byte xor'd
+ */
+const char *find_repeated_byte_xor(const char **candidates, size_t num)
+{
+    size_t index_of_most_likely = 0;
+    double best_score = DBL_MIN;
+    uint8_t best_key = 0;
+    for (size_t i = 0; i < num; i++) {
+        size_t raw_size = strlen(candidates[i]) / 2;
+        uint8_t raw[raw_size];
+        read_base16(raw, candidates[i], raw_size * 2);
+        uint8_t key = detect_repeated_byte_xor(raw, raw_size);
+        repeated_byte_xor(key, raw, raw, raw_size);
+        struct letter_frequencies lfs;
+        calculate_letter_frequencies((char *) raw, raw_size, &lfs);
+        double score = compare_to_english(&lfs);
+        if (score > best_score) {
+            best_score = score;
+            index_of_most_likely = i;
+            best_key = key;
+        }
+    }
+    return candidates[index_of_most_likely];
 }
 
 /*

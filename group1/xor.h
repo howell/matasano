@@ -1,12 +1,13 @@
 /*
- * xor.c
+ * xor.h
  * Functions related to xor-ing for the Matasano crypto challenges,
  * particularly:
  *  1) Fixed xor
- *  2) Single-character xor Cipher
+ *  2) Single-character xor cipher
  *  3) Detecting single-character xor
- *  4) Repeating-key xor cipher
- *  5) ...
+ *  4) Finding which string out of many has been single-character xor'd
+ *  5) Repeating-key xor cipher
+ *  6) Braking a repeating-key xor cipher
  */
 
 #ifndef ___xor_h___
@@ -60,6 +61,16 @@ void repeated_key_xor(const uint8_t *key, size_t key_size, const uint8_t *src,
  * @return best guess for the key that src has been repeat-key-encrypted with
  */
 uint8_t detect_repeated_byte_xor(const uint8_t *src, size_t len);
+
+/*
+ * Take an array of strings and return the one that is most likely to have
+ * been encrpyted with repeated-byte xor
+ * @param candidadtes array of pointers to strings
+ * @param num number of candidates
+ *        precondition: num >= length of candidates array
+ * @return pointer to candidate most likely to have been repeated-byte xor'd
+ */
+const char *find_repeated_byte_xor(const char **candidates, size_t num);
 
 /*
  * Break cipher text that has been encrpyted with repeated-key xoring
