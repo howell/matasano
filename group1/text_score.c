@@ -100,8 +100,7 @@ void print_frequencies(const struct letter_frequencies *src)
 {
     if (!src)
         return;
-    size_t i;
-    for (i = 0; i < FREQS_LEN; ++i) {
+    for (size_t i = 0; i < FREQS_LEN; ++i) {
         char current;
         if (i == LF_SPACE_INDEX)
             current = ' ';
@@ -138,8 +137,7 @@ uint32_t hamming_distance(const uint8_t *src1, const uint8_t *src2, size_t len)
     if (!src1 || !src2)
         return UINT32_MAX;
     uint32_t distance = 0;
-    size_t i;
-    for (i = 0; i < len; ++i)
+    for (size_t i = 0; i < len; ++i)
         distance += differing_bits(src1[i], src2[i]);
     return distance;
 }

@@ -57,8 +57,7 @@ void repeated_byte_xor(uint8_t key, const uint8_t *src, uint8_t *dest,
 {
     if (!src || !dest)
         return;
-    size_t i;
-    for (i = 0; i < len; ++i)
+    for (size_t i = 0; i < len; ++i)
         dest[i] = src[i] ^ key;
 }
 
