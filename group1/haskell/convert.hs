@@ -34,12 +34,11 @@ base16Lookup c = liftM fromIntegral $ toLower c `elemIndex` "0123456789abcdef"
 --base16Lookup c = toLower c `elemIndex` "0123456789abcdef" >>=
 --                      return . fromIntegral
 
--- seperate the most significant and least significant nibbles of a character
---getNibbles :: Char -> (Word8, Word8)
---getNibbles c = (raw `shiftR` 4, raw .&. 4) where
-                --raw = fromIntegral . ord . toLower $ c
+printBase16 :: [Word8] -> String
+printBase16 = concat . map base16ReverseLookup
 
---combineNibbles :: (Word8, Word8) -> Word8
---combineNibbles (x, y) = x `shiftL` 4 .|. y
-
-
+base16ReverseLookup :: Word8 -> String
+base16ReverseLookup x = [(base16Alphabet !! msn), (base16Alphabet !! lsn)] where
+                            base16Alphabet = "0123456789abcdef"
+                            msn = fromIntegral $ x `shiftR` 4
+                            lsn = fromIntegral $ x .&. 0x0f
