@@ -42,3 +42,33 @@ base16ReverseLookup x = [(base16Alphabet !! msn), (base16Alphabet !! lsn)] where
                             base16Alphabet = "0123456789abcdef"
                             msn = fromIntegral $ x `shiftR` 4
                             lsn = fromIntegral $ x .&. 0x0f
+base64Alphabet :: [Char]
+base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
+base64Lookup :: Char -> Maybe Word8
+base64Lookup '=' = Just 0
+base64Lookup c = liftM fromIntegral $ c `elemIndex` base64Alphabet
+
+readBase64 :: String -> Maybe [Word8]
+readBase64 s = do
+    tuples <- sequence $ map readBase64Group $ tuplefy64 s
+    return . concat $ map detuplefy64 tuples
+
+tuplefy64 :: [Char] -> [(Char, Char, Char, Char)]
+tuplefy64 [] = []
+tuplefy64 (a:b:c:d:xs) = (a, b, c, d) : tuplefy64 xs
+
+detuplefy64 :: (Word8, Word8, Word8) -> [Word8]
+detuplefy64 (a, b, c) = [a, b, c]
+
+readBase64Group :: (Char, Char, Char, Char) -> Maybe (Word8, Word8, Word8)
+readBase64Group (a, b, c, d) = do
+    e <- base64Lookup a
+    f <- base64Lookup b
+    g <- base64Lookup c
+    h <- base64Lookup d
+    let x = (e `shiftL` 2) .|. (f `shiftR` 4)
+        y = (f `shiftL` 4) .|. (g `shiftR` 2)
+        z = (g `shiftL` 6) .|. h
+    return (x, y, z)
+
