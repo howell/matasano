@@ -16,6 +16,9 @@ base64Tests = TestList [TestLabel "show64Test1" show64Test1,
 base16Tests = TestList [TestLabel "show16Test1" show16Test1,
                         TestLabel "read16Test1" read16Test1]
 
+xorCipherTests = TestList [TestLabel "fixedXOR" fixedXORTest,
+                           TestLabel "singleCharTest" singleCharXORTest]
+
 -- helper function for using strings as test inputs
 stringToWord8 :: String -> [Word8]
 stringToWord8 = map (fromIntegral . ord)
@@ -50,10 +53,25 @@ read64Test1 = TestCase (assertEqual "read64" expected actual) where
         0x6f, 0x6d]
 
 show16Test1 = TestCase (assertEqual "show16" expected actual) where
-    actual = showBase16 $ [0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]
+    actual = showBase16 [0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]
     expected = "0123456789abcdef"
 
 read16Test1 = TestCase (assertEqual "read16" expected actual) where
     actual = readBase16 "0123456789AbCDef";
     expected = Just [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF]
+
+-- Matasano #2
+fixedXORTest = TestCase (assertEqual "fixedXOR" expected actual) where
+    expected = Just "746865206b696420646f6e277420706c6179"
+    actual = do
+        x <- readBase16 "1c0111001f010100061a024b53535009181c"
+        y <- readBase16 "686974207468652062756c6c277320657965"
+        return $ showBase16 $ fixedXOR x y
+
+-- Matasano #3
+singleCharXORTest = TestCase (assertEqual "singleXOR" expected actual) where
+    actual = do
+       x <- readBase16 "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
+       return $ breakSingleCharXORCipher x
+    expected = Just "Cooking MC's like a pound of bacon"
 
