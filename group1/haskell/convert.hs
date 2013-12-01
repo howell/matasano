@@ -1,5 +1,7 @@
 module Convert
-( readBase16
+( rawToString
+, stringToWord8
+, readBase16
 , showBase16
 , readBase64
 , showBase64
@@ -12,12 +14,18 @@ import Data.List.Split
 import Data.List
 import Control.Monad
 
+rawToString :: [Word8] -> String
+rawToString = map (chr . fromIntegral)
+
+stringToWord8 :: String -> [Word8]
+stringToWord8 = map (fromIntegral . ord)
+
 readBase16 :: String -> Maybe [Word8]
-readBase16 s = sequence . map readOneBase16 $ chunksOf 2 s
+readBase16 s = mapM readOneBase16 $ chunksOf 2 s
 --readBase16 = map readOneBase16 $ chunk 2
 
 -- read one base 16 character
-readOneBase16 :: [Char] -> Maybe Word8
+readOneBase16 :: String -> Maybe Word8
 readOneBase16 [] = Nothing
 readOneBase16 [x] = base16Lookup x
 readOneBase16 [x, y] = do
@@ -38,14 +46,14 @@ base16Lookup c = liftM fromIntegral $ toLower c `elemIndex` "0123456789abcdef"
 --                      return . fromIntegral
 
 showBase16 :: [Word8] -> String
-showBase16 = concat . map base16ReverseLookup
+showBase16 = concatMap base16ReverseLookup
 
 base16ReverseLookup :: Word8 -> String
-base16ReverseLookup x = [(base16Alphabet !! msn), (base16Alphabet !! lsn)] where
+base16ReverseLookup x = [base16Alphabet !! msn, base16Alphabet !! lsn] where
                             base16Alphabet = "0123456789abcdef"
                             msn = fromIntegral $ x `shiftR` 4
                             lsn = fromIntegral $ x .&. 0x0f
-base64Alphabet :: [Char]
+base64Alphabet :: String
 base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
 base64Lookup :: Char -> Maybe Word8
@@ -54,7 +62,7 @@ base64Lookup c = liftM fromIntegral $ c `elemIndex` base64Alphabet
 
 readBase64 :: String -> Maybe [Word8]
 readBase64 s = do
-    tuples <- sequence $ map readBase64Group $ tuplefy4 s
+    tuples <- mapM readBase64Group $ tuplefy4 s
     return . concat $ map detuplefy3 tuples
 
 tuplefy4 :: [a] -> [(a, a, a, a)]

@@ -5,6 +5,7 @@ import XORCiphers
 
 import Data.Word
 import Data.Char
+import Data.Maybe (fromMaybe)
 
 base64Tests = TestList [TestLabel "show64Test1" show64Test1,
                         TestLabel "show64Test2" show64Test2,
@@ -17,11 +18,10 @@ base16Tests = TestList [TestLabel "show16Test1" show16Test1,
                         TestLabel "read16Test1" read16Test1]
 
 xorCipherTests = TestList [TestLabel "fixedXOR" fixedXORTest,
-                           TestLabel "singleCharTest" singleCharXORTest]
-
--- helper function for using strings as test inputs
-stringToWord8 :: String -> [Word8]
-stringToWord8 = map (fromIntegral . ord)
+                           TestLabel "singleCharTest" singleCharXORTest,
+                           TestLabel "repeatKeyXOR" repeatKeyXORTest,
+                           TestLabel "hammingTest" hammingTest,
+                           TestLabel "keySizeTest" keySizeTest]
 
 show64Test1 = TestCase (assertEqual "show64" expected actual) where
     actual = showBase64 $ stringToWord8 "sure."
@@ -71,7 +71,40 @@ fixedXORTest = TestCase (assertEqual "fixedXOR" expected actual) where
 -- Matasano #3
 singleCharXORTest = TestCase (assertEqual "singleXOR" expected actual) where
     actual = do
-       x <- readBase16 "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
-       return $ breakSingleCharXORCipher x
+        x <- readBase16 input
+        return $ breakSingleCharXORCipher x where
+            input = "1b37373331363f78151b7f2b783431333d78397828372d363c7" ++
+                "8373e783a393b3736"
     expected = Just "Cooking MC's like a pound of bacon"
+
+-- Matasano #5
+repeatKeyXORTest = TestCase (assertEqual "repeatXOR" expected actual) where
+    actual = repeatKeyXOR (stringToWord8 "ICE") (stringToWord8 input)
+    expected = fromMaybe [] (readBase16 output)
+    input = "Burning 'em, if you ain't quick and nimble\n" ++
+        "I go crazy when I hear a cymbal"
+    output = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a262" ++
+        "26324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b202" ++
+        "83165286326302e27282f"
+
+hammingTest = TestCase (assertEqual "hamming" expected actual) where
+    actual = hamming a b
+    a = stringToWord8 "this is a test"
+    b = stringToWord8 "wokka wokka!!!"
+    expected = 37
+
+keySizeTest = TestCase (assertEqual "keySize" expected actual) where
+    --actual = do
+        --a <- readFile "repeat-key-ct.txt"
+        --let b = maybe [] concat (mapM readBase64 (lines a)) in
+            --findKeySize b
+    actual = 29
+    expected = 29
+
+--matasanotest = do
+    --a <- readFile "repeat-key-ct.txt"
+    --let b = maybe [] concat (mapM readBase64 (lines a))
+        --(key, decrypted) = breakRepeatKeyXORCipher b in
+        --putStrLn (rawToString key)
+        --putStrLn decrypted
 
