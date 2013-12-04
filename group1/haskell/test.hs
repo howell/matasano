@@ -3,10 +3,12 @@ module Tests where
 import Test.HUnit
 import Convert
 import XORCiphers
+import AES_ECB (ecbDecryptAES128)
 
 import Data.Word
-import Data.Char
+import Data.Char (isSpace)
 import Data.Maybe (fromMaybe)
+import Data.List (isInfixOf)
 import System.IO.Unsafe (unsafePerformIO)
 
 base64Tests = TestList [TestLabel "show64Test1" show64Test1,
@@ -26,6 +28,8 @@ xorCipherTests = TestList [TestLabel "fixedXOR" fixedXORTest,
                            TestLabel "keySizeTest" keySizeTest,
                            TestLabel "RKXOR1" breakRepeatKeyXORTest1,
                            TestLabel "RKXOR2" breakRepeatKeyXORTest2 ]
+
+aes_128_ecb_tests = TestList [TestLabel "decrypt" ecbDecryptTest]
 
 show64Test1 = TestCase (assertEqual "show64" expected actual) where
     actual = showBase64 $ stringToWord8 "sure."
@@ -118,5 +122,14 @@ breakRepeatKeyXORTest2 = TestCase (assertEqual "RKXOR2" expected actual) where
     cipher_text = fromMaybe [] $ readBase64 $ (concat . lines) input
     (_, plain_text) = breakRepeatKeyXORCipher cipher_text
     actual = plain_text
-    expected = unsafePerformIO $ readFile "repeat-key-pt.txt"
+    expected = unsafePerformIO $ readFile "plaintext.txt"
+
+-- Matasano #7
+ecbDecryptTest = TestCase (assertBool "ECB" p) where
+    input = unsafePerformIO $ readFile "aes_ecb_enc64.txt"
+    cipherText = fromMaybe [] $ (readBase64 . concat . lines) input
+    key = stringToWord8 "YELLOW SUBMARINE"
+    actual = rawToString $ ecbDecryptAES128 key cipherText
+    expected = unsafePerformIO $ readFile "plaintext.txt"
+    p = expected `isInfixOf` actual
 
