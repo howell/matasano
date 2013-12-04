@@ -1,3 +1,4 @@
+module Tests where
 
 import Test.HUnit
 import Convert
@@ -6,6 +7,7 @@ import XORCiphers
 import Data.Word
 import Data.Char
 import Data.Maybe (fromMaybe)
+import System.IO.Unsafe (unsafePerformIO)
 
 base64Tests = TestList [TestLabel "show64Test1" show64Test1,
                         TestLabel "show64Test2" show64Test2,
@@ -21,7 +23,9 @@ xorCipherTests = TestList [TestLabel "fixedXOR" fixedXORTest,
                            TestLabel "singleCharTest" singleCharXORTest,
                            TestLabel "repeatKeyXOR" repeatKeyXORTest,
                            TestLabel "hammingTest" hammingTest,
-                           TestLabel "keySizeTest" keySizeTest]
+                           TestLabel "keySizeTest" keySizeTest,
+                           TestLabel "RKXOR1" breakRepeatKeyXORTest1,
+                           TestLabel "RKXOR2" breakRepeatKeyXORTest2 ]
 
 show64Test1 = TestCase (assertEqual "show64" expected actual) where
     actual = showBase64 $ stringToWord8 "sure."
@@ -93,18 +97,26 @@ hammingTest = TestCase (assertEqual "hamming" expected actual) where
     b = stringToWord8 "wokka wokka!!!"
     expected = 37
 
+-- The next 3 tests comprise Matasano #6
 keySizeTest = TestCase (assertEqual "keySize" expected actual) where
-    --actual = do
-        --a <- readFile "repeat-key-ct.txt"
-        --let b = maybe [] concat (mapM readBase64 (lines a)) in
-            --findKeySize b
-    actual = 29
+    input = unsafePerformIO $ readFile "repeat-key-ct.txt"
+    cipher_text = fromMaybe [] $ readBase64 $ (concat . lines) input
+    actual = findKeySize cipher_text
     expected = 29
 
---matasanotest = do
-    --a <- readFile "repeat-key-ct.txt"
-    --let b = maybe [] concat (mapM readBase64 (lines a))
-        --(key, decrypted) = breakRepeatKeyXORCipher b in
-        --putStrLn (rawToString key)
-        --putStrLn decrypted
+-- Test that the correct key is recovered
+breakRepeatKeyXORTest1 = TestCase (assertEqual "RKXOR1" expected actual) where
+    input = unsafePerformIO $ readFile "repeat-key-ct.txt"
+    cipher_text = fromMaybe [] $ readBase64 $ (concat . lines) input
+    (key, _) = breakRepeatKeyXORCipher cipher_text
+    actual = rawToString key
+    expected = "Terminator X: Bring the noise"
+
+-- Test that the correct plain text is returned
+breakRepeatKeyXORTest2 = TestCase (assertEqual "RKXOR2" expected actual) where
+    input = unsafePerformIO $ readFile "repeat-key-ct.txt"
+    cipher_text = fromMaybe [] $ readBase64 $ (concat . lines) input
+    (_, plain_text) = breakRepeatKeyXORCipher cipher_text
+    actual = plain_text
+    expected = unsafePerformIO $ readFile "repeat-key-pt.txt"
 

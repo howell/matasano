@@ -63,7 +63,11 @@ base64Lookup c = liftM fromIntegral $ c `elemIndex` base64Alphabet
 readBase64 :: String -> Maybe [Word8]
 readBase64 s = do
     tuples <- mapM readBase64Group $ tuplefy4 s
-    return . concat $ map detuplefy3 tuples
+    return . takeUnpadded . concat $ map detuplefy3 tuples where
+        takeUnpadded = case take 2 (reverse s) of
+                            "=="      -> init . init
+                            ['=', _]  -> init
+                            otherwise -> id
 
 tuplefy4 :: [a] -> [(a, a, a, a)]
 tuplefy4 [] = []

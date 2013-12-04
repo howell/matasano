@@ -61,6 +61,6 @@ keySizeLikeliness xs k = hammingPairs (take 12 blocks) / fromIntegral k where
 
 hammingPairs :: (Num a, Bits a, Num b) => [[a]] -> b
 hammingPairs [] = 0
-hammingPairs (x:[]) = 0
+hammingPairs (_:[]) = 0
 hammingPairs (x:y:zs) = hamming x y + hammingPairs zs
 
