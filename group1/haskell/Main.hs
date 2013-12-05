@@ -134,7 +134,7 @@ hammingTest = TestCase (assertEqual "hamming" expected actual) where
 keySizeTest = TestCase (assertEqual "keySize" expected actual) where
     input = unsafePerformIO $ readFile "repeat-key-ct.txt"
     cipher_text = fromMaybe [] $ readBase64 $ (concat . lines) input
-    actual = findKeySize cipher_text
+    actual = length . fst $ breakRepeatKeyXORCipher cipher_text
     expected = 29
 
 -- Test that the correct key is recovered

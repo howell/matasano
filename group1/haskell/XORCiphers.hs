@@ -5,7 +5,6 @@ module XORCiphers
 , detectSingleCharXOR
 , breakRepeatKeyXORCipher
 , hamming
-, findKeySize
 ) where
 
 import Convert
@@ -22,11 +21,7 @@ fixedXOR :: Bits a => [a] -> [a] -> [a]
 fixedXOR = zipWith xor
 
 repeatKeyXOR :: Bits a => [a] -> [a] -> [a]
-repeatKeyXOR k = fixedXOR (concat $ repeat k)
-
-findKey :: [Word8] -> Word8
-findKey xs = maxIndex $ map (score . rawToString . encrypt) [0..255] where
-    encrypt k = repeatKeyXOR (return k) xs
+repeatKeyXOR = fixedXOR . concat . repeat
 
 breakSingleCharXORCipher :: [Word8] -> (Word8, String)
 breakSingleCharXORCipher xs =
@@ -45,14 +40,18 @@ breakRepeatKeyXORCipher xs = (key, decrypted) where
     keysize = findKeySize xs
     decrypted = rawToString $ repeatKeyXOR key xs
 
+hamming :: (Num a, Bits a, Num b) => [a] -> [a] -> b
+hamming = (sum .) . zipWith hammingDistance
+
+findKey :: [Word8] -> Word8
+findKey xs = maxIndex $ map (score . rawToString . encrypt) [0..255] where
+    encrypt k = repeatKeyXOR (return k) xs
+
 maxIndex :: (Enum b, Num b, Ord a) => [a] -> b
 maxIndex xs = snd $ maximumBy (comparing fst) (zip xs [0..])
 
 minIndex :: Ord a => [a] -> Int
 minIndex xs = snd $ minimumBy (comparing fst) (zip xs [0..])
-
-hamming :: (Num a, Bits a, Num b) => [a] -> [a] -> b
-hamming a b = sum $ zipWith hammingDistance a b
 
 hammingDistance :: (Num a, Bits a, Num b) => a -> a -> b
 hammingDistance 0 0 = 0

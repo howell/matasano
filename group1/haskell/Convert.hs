@@ -21,8 +21,26 @@ stringToWord8 :: String -> [Word8]
 stringToWord8 = map (fromIntegral . ord)
 
 readBase16 :: String -> Maybe [Word8]
-readBase16 s = mapM readOneBase16 $ chunksOf 2 s
---readBase16 = map readOneBase16 $ chunk 2
+readBase16 = mapM readOneBase16 . chunksOf 2
+
+showBase16 :: [Word8] -> String
+showBase16 = concatMap base16ReverseLookup
+
+readBase64 :: String -> Maybe [Word8]
+readBase64 s = do
+    tuples <- mapM readBase64Group $ tuplefy4 s
+    return . takeUnpadded . concat $ map detuplefy3 tuples where
+        takeUnpadded = case take 2 (reverse s) of
+                            "=="      -> init . init
+                            ['=', _]  -> init
+                            otherwise -> id
+
+showBase64 :: [Word8] -> String
+showBase64 xs =
+    let groups = chunksOf 3 xs
+        fullGroups = join $ map tuplefy3 $ init groups
+        lastGroup = last groups in
+    concat $ map encodeGroup64 fullGroups ++ [encodeWithPadding64 lastGroup]
 
 -- read one base 16 character
 readOneBase16 :: String -> Maybe Word8
@@ -45,9 +63,6 @@ base16Lookup c = liftM fromIntegral $ toLower c `elemIndex` "0123456789abcdef"
 --base16Lookup c = toLower c `elemIndex` "0123456789abcdef" >>=
 --                      return . fromIntegral
 
-showBase16 :: [Word8] -> String
-showBase16 = concatMap base16ReverseLookup
-
 base16ReverseLookup :: Word8 -> String
 base16ReverseLookup x = [base16Alphabet !! msn, base16Alphabet !! lsn] where
                             base16Alphabet = "0123456789abcdef"
@@ -59,15 +74,6 @@ base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
 base64Lookup :: Char -> Maybe Word8
 base64Lookup '=' = Just 0
 base64Lookup c = liftM fromIntegral $ c `elemIndex` base64Alphabet
-
-readBase64 :: String -> Maybe [Word8]
-readBase64 s = do
-    tuples <- mapM readBase64Group $ tuplefy4 s
-    return . takeUnpadded . concat $ map detuplefy3 tuples where
-        takeUnpadded = case take 2 (reverse s) of
-                            "=="      -> init . init
-                            ['=', _]  -> init
-                            otherwise -> id
 
 tuplefy4 :: [a] -> [(a, a, a, a)]
 tuplefy4 [] = []
@@ -86,13 +92,6 @@ readBase64Group (a, b, c, d) = do
         y = (f `shiftL` 4) .|. (g `shiftR` 2)
         z = (g `shiftL` 6) .|. h
     return (x, y, z)
-
-showBase64 :: [Word8] -> String
-showBase64 xs =
-    let groups = chunksOf 3 xs
-        fullGroups = join $ map tuplefy3 $ init groups
-        lastGroup = last groups in
-    concat $ map encodeGroup64 fullGroups ++ [encodeWithPadding64 lastGroup]
 
 tuplefy3 :: [a] -> [(a, a, a)]
 tuplefy3 [] = []

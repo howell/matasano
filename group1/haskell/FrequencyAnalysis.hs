@@ -16,7 +16,7 @@ countedCharacters :: String
 countedCharacters = "abcdefghigklmnopqrstuvwxyz "
 
 occurrences :: Char -> String -> Int
-occurrences c s = length $ filter (==c) s
+occurrences c = length . filter (==c)
 
 frequency :: Char -> String -> Percent
 frequency c s = fromIntegral (100 * occurrences c s) / fromIntegral (length s)
@@ -24,7 +24,6 @@ frequency c s = fromIntegral (100 * occurrences c s) / fromIntegral (length s)
 frequencies :: String -> LetterFrequencies
 frequencies s = M.fromList $ zip countedCharacters freqs where
     freqs = frequency <$> countedCharacters <*> pure (downcase s)
--- can replace pure with repeat
 
 downcase :: String -> String
 downcase = map toLower
@@ -37,5 +36,5 @@ english = M.fromList $ zip countedCharacters freqs where
 
 --dotProduct :: LetterFrequencies -> LetterFrequencies -> Double
 dotProduct :: (Num b, Ord k) => M.Map k b -> M.Map k b -> b
-dotProduct a b = M.fold (+) 0 $ M.intersectionWith (*) a b
+dotProduct = (M.fold (+) 0 .) . M.intersectionWith (*)
 
