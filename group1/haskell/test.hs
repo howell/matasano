@@ -80,7 +80,7 @@ fixedXORTest = TestCase (assertEqual "fixedXOR" expected actual) where
 singleCharXORTest = TestCase (assertEqual "singleXOR" expected actual) where
     actual = do
         x <- readBase16 input
-        return $ breakSingleCharXORCipher x where
+        return . snd $ breakSingleCharXORCipher x where
             input = "1b37373331363f78151b7f2b783431333d78397828372d363c7" ++
                 "8373e783a393b3736"
     expected = Just "Cooking MC's like a pound of bacon"

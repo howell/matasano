@@ -27,8 +27,13 @@ findKey :: [Word8] -> Word8
 findKey xs = maxIndex $ map (score . rawToString . encrypt) [0..255] where
     encrypt k = repeatKeyXOR (return k) xs
 
-breakSingleCharXORCipher :: [Word8] -> String
-breakSingleCharXORCipher xs = rawToString $ repeatKeyXOR (return (findKey xs)) xs
+breakSingleCharXORCipher :: [Word8] -> (Word8, String)
+breakSingleCharXORCipher xs =
+    let key = findKey xs
+        plaintext =  rawToString $ repeatKeyXOR (return key) xs in
+        (key, plaintext)
+
+--detectSingleCha
 
 breakRepeatKeyXORCipher :: [Word8] -> ([Word8], String)
 breakRepeatKeyXORCipher xs = (key, decrypted) where
