@@ -23,6 +23,7 @@ base16Tests = TestList [TestLabel "show16Test1" show16Test1,
 
 xorCipherTests = TestList [TestLabel "fixedXOR" fixedXORTest,
                            TestLabel "singleCharTest" singleCharXORTest,
+                           TestLabel "detectSingle" dectectSingleCharXORTest,
                            TestLabel "repeatKeyXOR" repeatKeyXORTest,
                            TestLabel "hammingTest" hammingTest,
                            TestLabel "keySizeTest" keySizeTest,
@@ -84,6 +85,13 @@ singleCharXORTest = TestCase (assertEqual "singleXOR" expected actual) where
             input = "1b37373331363f78151b7f2b783431333d78397828372d363c7" ++
                 "8373e783a393b3736"
     expected = Just "Cooking MC's like a pound of bacon"
+
+-- Matasano #4
+dectectSingleCharXORTest = TestCase (assertEqual "detectSingle" e act) where
+    act = snd . snd $ detectSingleCharXOR cts
+    e = "Now that the party is jumping\n"
+    cts = map (fromMaybe [] . readBase16) (lines input)
+    input = unsafePerformIO $ readFile "single_char_cts.txt"
 
 -- Matasano #5
 repeatKeyXORTest = TestCase (assertEqual "repeatXOR" expected actual) where

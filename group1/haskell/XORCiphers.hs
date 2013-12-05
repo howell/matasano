@@ -2,6 +2,7 @@ module XORCiphers
 ( fixedXOR
 , repeatKeyXOR
 , breakSingleCharXORCipher
+, detectSingleCharXOR
 , breakRepeatKeyXORCipher
 , hamming
 , findKeySize
@@ -33,7 +34,9 @@ breakSingleCharXORCipher xs =
         plaintext =  rawToString $ repeatKeyXOR (return key) xs in
         (key, plaintext)
 
---detectSingleCha
+detectSingleCharXOR :: [[Word8]] -> ([Word8], (Word8, String))
+detectSingleCharXOR cts = maximumBy (comparing $ score . snd . snd) pts where
+    pts = zip cts $ map breakSingleCharXORCipher cts
 
 breakRepeatKeyXORCipher :: [Word8] -> ([Word8], String)
 breakRepeatKeyXORCipher xs = (key, decrypted) where
