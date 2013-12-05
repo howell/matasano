@@ -1,9 +1,9 @@
-module Tests where
+module Main where
 
 import Test.HUnit
 import Convert
 import XORCiphers
-import AES_ECB (ecbDecryptAES128)
+import AES_ECB
 
 import Data.Word
 import Data.Char (isSpace)
@@ -28,7 +28,28 @@ xorCipherTests = TestList [TestLabel "fixedXOR" fixedXORTest,
                            TestLabel "hammingTest" hammingTest,
                            TestLabel "keySizeTest" keySizeTest,
                            TestLabel "RKXOR1" breakRepeatKeyXORTest1,
-                           TestLabel "RKXOR2" breakRepeatKeyXORTest2 ]
+                           TestLabel "RKXOR2" breakRepeatKeyXORTest2,
+                           TestLabel "detectEcb" detectEcbTest]
+
+allTests = TestList [TestLabel "show64Test1" show64Test1,
+                     TestLabel "show64Test2" show64Test2,
+                     TestLabel "show64Test3" show64Test3,
+                     TestLabel "show64Test4" show64Test4,
+                     TestLabel "show64Test5" show64Test5,
+                     TestLabel "read64Test1" read64Test1,
+                     TestLabel "show16Test1" show16Test1,
+                     TestLabel "read16Test1" read16Test1,
+                     TestLabel "fixedXOR" fixedXORTest,
+                     TestLabel "singleCharTest" singleCharXORTest,
+                     TestLabel "detectSingle" dectectSingleCharXORTest,
+                     TestLabel "repeatKeyXOR" repeatKeyXORTest,
+                     TestLabel "hammingTest" hammingTest,
+                     TestLabel "keySizeTest" keySizeTest,
+                     TestLabel "RKXOR1" breakRepeatKeyXORTest1,
+                     TestLabel "RKXOR2" breakRepeatKeyXORTest2,
+                     TestLabel "detectEcb" detectEcbTest]
+
+main = runTestTT allTests
 
 aes_128_ecb_tests = TestList [TestLabel "decrypt" ecbDecryptTest]
 
@@ -140,4 +161,16 @@ ecbDecryptTest = TestCase (assertBool "ECB" p) where
     actual = rawToString $ ecbDecryptAES128 key cipherText
     expected = unsafePerformIO $ readFile "plaintext.txt"
     p = expected `isInfixOf` actual
+
+-- Matasano #8
+detectEcbTest = TestCase (assertEqual "detectEcb" expected actual) where
+    actual = map showBase16 $ findEcbEnc cts
+    expected = ["d880619740a8a19b7840a8a31c810a3d08649af70dc06f4fd5d2d69c7" ++
+                "44cd283e2dd052f6b641dbf9d11b0348542bb5708649af70dc06f4fd5" ++
+                "d2d69c744cd2839475c9dfdbc1d46597949d9c7e82bf5a08649af70dc" ++
+                "06f4fd5d2d69c744cd28397a93eab8d6aecd566489154789a6b030864" ++
+                "9af70dc06f4fd5d2d69c744cd283d403180c98c8f6db1f2a3f9c4040d" ++
+                "eb0ab51b29933f2c123c58386b06fba186a"]
+    cts = map (fromMaybe [] . readBase16) (lines input)
+    input = unsafePerformIO $ readFile "aes_ecb_cts.txt"
 
